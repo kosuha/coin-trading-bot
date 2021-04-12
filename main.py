@@ -37,22 +37,22 @@ def movingAverage():
     preSum = 0
 
     for i in range(15, 20):
-        sum += df.open[i]
+        sum += df.close[i]
 
     ma_5 = sum/5
 
     for i in range(0, 15):
-        sum += df.open[i]
+        sum += df.close[i]
 
     ma_20 = sum/20
 
     for i in range(16, 21):
-        preSum += df.open[i]
+        preSum += df.close[i]
 
     preMa_5 = preSum/5
 
     for i in range(1, 16):
-        preSum += df.open[i]
+        preSum += df.close[i]
 
     preMa_20 = preSum/20
 
@@ -129,12 +129,11 @@ def trade():
     else:
         print("실제거래입니다.")
 
-    # if checkGoldenCross(ma):
-    #     buy()
-    # elif checkSell(ma):
-    #     sell()
-    # buy()
-    sell()
+    if checkGoldenCross(ma):
+        buy()
+    elif checkSell(ma):
+        sell()
+
 
 schedule.every(5).seconds.do(trade)
 
