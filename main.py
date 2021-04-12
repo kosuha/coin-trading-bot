@@ -123,6 +123,7 @@ def trade():
         print("현금: ", testMoney)
         print("코인: ", testCoin)
         print("자산 :", testMoney + (price * testCoin))
+        print("시고저종: ", ma)
         print("현재가: ", price)
         print("\n")
 
