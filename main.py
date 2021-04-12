@@ -122,6 +122,7 @@ def trade():
         print("현금: ", testMoney)
         print("코인: ", testCoin)
         print("자산 :", testMoney + (pyupbit.get_current_price(coin) * testCoin))
+        print("\n")
     else:
         print("실제거래입니다.")
 
