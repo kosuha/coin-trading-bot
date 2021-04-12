@@ -24,9 +24,9 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 # print(pyupbit.get_ohlcv("KRW-DOGE", interval="minute1", count=1))
  
 isTest = True
-testMoney = 50000
+testMoney = 50000.0
 testCoin = 0.0
-fee = 0.05
+fee = 0.0005
 coin = "KRW-DOGE"
 
 # 이평선
@@ -90,7 +90,7 @@ def buy():
         print("## buy coin\n")
         if isTest:
             testMoney = 0
-            testCoin = price / (myMoney - (myMoney * fee))
+            testCoin = (myMoney - (myMoney * fee)) / price
         else:
             print("실제 거래입니다.")
 
@@ -117,19 +117,23 @@ def sell():
 
 def trade():
     ma = movingAverage()
+    price = pyupbit.get_current_price(coin)
 
     if isTest:
         print("현금: ", testMoney)
         print("코인: ", testCoin)
-        print("자산 :", testMoney + (pyupbit.get_current_price(coin) * testCoin))
+        print("자산 :", testMoney + (price * testCoin))
         print("\n")
+        print("현재가: ", price)
     else:
         print("실제거래입니다.")
 
-    if checkGoldenCross(ma):
-        buy()
-    elif checkSell(ma):
-        sell();
+    # if checkGoldenCross(ma):
+    #     buy()
+    # elif checkSell(ma):
+    #     sell()
+    # buy()
+    sell()
 
 schedule.every(5).seconds.do(trade)
 
