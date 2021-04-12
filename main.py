@@ -36,22 +36,22 @@ def movingAverage():
     sum = 0
     preSum = 0
 
-    for i in range(15, 20):
+    for i in range(16, 21):
         sum += df.close[i]
 
     ma_5 = sum/5
 
-    for i in range(0, 15):
+    for i in range(1, 16):
         sum += df.close[i]
 
     ma_20 = sum/20
 
-    for i in range(16, 21):
+    for i in range(15, 20):
         preSum += df.close[i]
 
     preMa_5 = preSum/5
 
-    for i in range(1, 16):
+    for i in range(0, 15):
         preSum += df.close[i]
 
     preMa_20 = preSum/20
