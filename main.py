@@ -25,10 +25,10 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 # print(pyupbit.get_ohlcv("KRW-DOGE", interval="minute1", count=1))
  
 isTest = True
-testMoney = 50000.0
+testMoney = 100000.0
 testCoin = 0.0
 fee = 0.0005
-coin = "KRW-CHZ"
+coin = "KRW-BTC"
 boughtPrice = 0;
 
 print("현재가: ", pyupbit.get_current_price(coin))
@@ -131,7 +131,7 @@ def sell():
 def trade():
     df = pyupbit.get_ohlcv(coin, interval="minute1", count=20)
 
-    if not df:
+    if df.empty:
         return 0
 
     ma = indicators(df)
