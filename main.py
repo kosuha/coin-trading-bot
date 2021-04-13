@@ -42,7 +42,7 @@ def indicators():
     for i in range(0, 5):
         preSum += df.close[i]
 
-    return { 'now': sum / 5, 'pre': preSum / 5, 'lastClose': df[5].close }
+    return { 'now': sum / 5, 'pre': preSum / 5, 'lastClose': df.close[5] }
 
 
 def checkBuy(indicators):
