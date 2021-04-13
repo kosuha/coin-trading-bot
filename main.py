@@ -15,11 +15,11 @@ conn = engine.connect()
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # # KRW-DOGE 조회
-# print(upbit.get_balance("KRW-DOGE")
+# print(upbit.get_balance("KRW-DOGE"))
 # # 보유 현금 조회
 # print(upbit.get_balance("KRW"))
 # # 현재 가격
-# print(pyupbit.get_current_price("KRW-DOGE"))
+print("현재가: ", pyupbit.get_current_price("KRW-DOGE"))
 # # 1분 단위로 시, 고, 저, 종, 거래량 데이터 count만큼 가져오기
 # print(pyupbit.get_ohlcv("KRW-DOGE", interval="minute1", count=1))
  
@@ -30,45 +30,31 @@ fee = 0.0005
 coin = "KRW-DOGE"
 
 # 이평선
-def movingAverage():
-    df = pyupbit.get_ohlcv(coin, interval="minute1", count=21)
+def indicators():
+    df = pyupbit.get_ohlcv(coin, interval="minute1", count=6)
     # print(df)
     sum = 0
     preSum = 0
 
-    for i in range(16, 21):
+    for i in range(1, 6):
         sum += df.close[i]
 
-    ma_5 = sum/5
-
-    for i in range(1, 16):
-        sum += df.close[i]
-
-    ma_20 = sum/20
-
-    for i in range(15, 20):
+    for i in range(0, 5):
         preSum += df.close[i]
 
-    preMa_5 = preSum/5
+    return { 'now': sum / 5, 'pre': preSum / 5, 'lastClose': df[5].close }
 
-    for i in range(0, 15):
-        preSum += df.close[i]
 
-    preMa_20 = preSum/20
-
-    return {5: ma_5, 20: ma_20, 'pre_5': preMa_5, 'pre_20': preMa_20}
-
-def checkGoldenCross(ma):
-    if ma['pre_20'] >= ma['pre_5'] and ma[20] < ma[5]:
-        print('## golden cross!')
+def checkBuy(indicators):
+    if indicators['pre'] < indicators['now']:
+        # print('## go up!')
         return True
     else:
         return False
 
-def checkSell(ma):
-    price = pyupbit.get_current_price(coin)
-    if ma[5] > price:
-        print('## go down!')
+def checkSell(indicators):
+    if indicators['now'] > indicators['lastClose']:
+        # print('## go down!')
         return True
     else:
         return False
@@ -91,6 +77,10 @@ def buy():
         if isTest:
             testMoney = 0
             testCoin = (myMoney - (myMoney * fee)) / price
+            print("자산 :", testMoney + (price * testCoin))
+            print("현금: ", testMoney)
+            print("코인: ", testCoin)
+            print("매수가: ", price)
         else:
             print("실제 거래입니다.")
 
@@ -112,25 +102,18 @@ def sell():
         if isTest:
             testMoney = (myCoin * price) - ((myCoin * price) * fee)
             testCoin = 0
+            print("자산 :", testMoney + (price * testCoin))
+            print("현금: ", testMoney)
+            print("코인: ", testCoin)
+            print("매도가: ", price)
         else:
             print("실제 거래입니다.")
 
 def trade():
-    ma = movingAverage()
+    ma = indicators()
     price = pyupbit.get_current_price(coin)
 
-    if isTest:
-        print("현금: ", testMoney)
-        print("코인: ", testCoin)
-        print("자산 :", testMoney + (price * testCoin))
-        print("시고저종: ", ma)
-        print("현재가: ", price)
-        print("\n")
-
-    else:
-        print("실제거래입니다.")
-
-    if checkGoldenCross(ma):
+    if checkBuy(ma):
         buy()
     elif checkSell(ma):
         sell()
