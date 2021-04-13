@@ -28,15 +28,15 @@ isTest = True
 testMoney = 50000.0
 testCoin = 0.0
 fee = 0.0005
-coin = "KRW-DOGE"
+coin = "KRW-CHZ"
 boughtPrice = 0;
 
 print("현재가: ", pyupbit.get_current_price(coin))
 print("시작시간: ", datetime.now())
 
 # 이평선
-def indicators():
-    df = pyupbit.get_ohlcv(coin, interval="minute1", count=20)
+def indicators(df):
+    
     # print(df)
     sum_5 = 0
     sum_10 = 0
@@ -55,24 +55,26 @@ def indicators():
     for i in range(14, 19):
         preSum_5 += df.close[i]
 
-    return { 'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5 }
+    bar_1 = df.close[19] - df.open[19] # 음수면 음봉 양수면 양봉
+    bar_2 = df.close[18] - df.open[18]
+
+    return { 'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'bar_1': bar_1, 'bar_2': bar_2 }
 
 
 def checkBuy(indicators):
-    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
+    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['bar_1'] >= 0 and indicators['bar_2'] >= 0:
         return True
-    else:
-        return False
+
+    return False
 
 def checkSell(indicators):
-    price = pyupbit.get_current_price(coin)
     if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
         return True
     
-    if (indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['now_5'] < indicators['pre_5']):
+    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['bar_1'] <= 0 and indicators['bar_2'] <= 0:
         return True
-    else:
-        return False
+
+    return False
 
 def buy():
     global testMoney, testCoin, boughtPrice
@@ -127,7 +129,12 @@ def sell():
             print("실제 거래입니다.")
 
 def trade():
-    ma = indicators()
+    df = pyupbit.get_ohlcv(coin, interval="minute1", count=20)
+
+    if not df:
+        return 0
+
+    ma = indicators(df)
     price = pyupbit.get_current_price(coin)
 
     if checkBuy(ma):
