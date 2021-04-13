@@ -31,29 +31,33 @@ coin = "KRW-DOGE"
 
 # 이평선
 def indicators():
-    df = pyupbit.get_ohlcv(coin, interval="minute1", count=6)
+    df = pyupbit.get_ohlcv(coin, interval="minute1", count=20)
     # print(df)
-    sum = 0
-    preSum = 0
+    sum_5 = 0
+    sum_20 = 0
+    preSum_5 = 0
 
-    for i in range(1, 6):
-        sum += df.close[i]
+    for i in range(15, 20):
+        sum_5 += df.close[i]
 
-    for i in range(0, 5):
-        preSum += df.close[i]
+    for i in range(0, 20):
+        sum_20 += df.close[i]
 
-    return { 'now': sum / 5, 'pre': preSum / 5, 'lastClose': df.close[5] }
+    for i in range(14, 19):
+        preSum_5 += df.close[i]
+
+    return { 'now_5': sum_5 / 5, 'pre_5': preSum_5 / 5, 'now_20': sum_20 / 20, 'lastOpen': df.open[5], 'lastClose': df.close[5] }
 
 
 def checkBuy(indicators):
-    if indicators['pre'] < indicators['now']:
+    if indicators['pre_5'] < indicators['now_5'] and indicators['now_5'] > indicators['now_20']:
         # print('## go up!')
         return True
     else:
         return False
 
 def checkSell(indicators):
-    if indicators['now'] > indicators['lastClose']:
+    if indicators['pre_5'] < indicators['now_5']:
         # print('## go down!')
         return True
     else:
