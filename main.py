@@ -28,7 +28,7 @@ isTest = True
 testMoney = 100000.0
 testCoin = 0.0
 fee = 0.0005
-coin = "KRW-BTC"
+coin = "KRW-DOGE"
 boughtPrice = 0;
 
 print("현재가: ", pyupbit.get_current_price(coin))
@@ -36,12 +36,13 @@ print("시작시간: ", datetime.now())
 
 # 이평선
 def indicators(df):
-    
+    price = pyupbit.get_current_price(coin)
     # print(df)
     sum_5 = 0
     sum_10 = 0
     sum_20 = 0
     preSum_5 = 0
+    preSum_10 = 0
 
     for i in range(15, 20):
         sum_5 += df.close[i]
@@ -55,24 +56,33 @@ def indicators(df):
     for i in range(14, 19):
         preSum_5 += df.close[i]
 
+    for i in range(9, 19):
+        preSum_10 += df.close[i]
+
     bar_1 = df.close[19] - df.open[19] # 음수면 음봉 양수면 양봉
     bar_2 = df.close[18] - df.open[18]
 
-    return { 'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'bar_1': bar_1, 'bar_2': bar_2 }
+    return { 'price': price ,'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'pre_10': preSum_10 / 10 }
 
 
 def checkBuy(indicators):
-    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['bar_1'] >= 0 and indicators['bar_2'] >= 0:
+    if indicators['now_5'] > indicators['now_10'] and indicators['price'] > indicators['now_5'] and indicators['now_5'] > indicators['pre_5']:
         return True
+
+    # if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
+    #     return True
 
     return False
 
 def checkSell(indicators):
-    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
+    if indicators['price'] * 1.005 < indicators['now_5']:
         return True
     
-    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['bar_1'] <= 0 and indicators['bar_2'] <= 0:
-        return True
+    # if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
+    #     return True
+    
+    # if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
+    #     return True
 
     return False
 
