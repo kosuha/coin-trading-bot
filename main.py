@@ -42,6 +42,7 @@ def indicators(df):
     sum_10 = 0
     sum_20 = 0
     preSum_5 = 0
+    prePreSum_5 = 0
     preSum_10 = 0
 
     for i in range(15, 20):
@@ -59,16 +60,22 @@ def indicators(df):
     for i in range(9, 19):
         preSum_10 += df.close[i]
 
+    for i in range(13, 18):
+        prePreSum_5 += df.close[i]
+
     bar_1 = df.close[19] - df.open[19] # 음수면 음봉 양수면 양봉
     bar_2 = df.close[18] - df.open[18]
 
-    return { 'price': price ,'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'pre_10': preSum_10 / 10 }
+    return { 'price': price ,'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'pre_10': preSum_10 / 10, 'pre_pre_5': prePreSum_5 / 5 }
 
 
 def checkBuy(indicators):
     if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
         return True
-
+        
+    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['pre_pre_5'] > indicators['pre_5'] and indicators['pre_5'] < indicators['now_5']:
+        return True
+    
     return False
 
 def checkSell(indicators):
@@ -150,8 +157,7 @@ def trade():
     if checkSell(ma):
         sell()
 
-
-schedule.every(5).seconds.do(trade)
+schedule.every(60).seconds.do(trade)
 
 while True:
     schedule.run_pending()
