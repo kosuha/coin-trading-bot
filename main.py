@@ -94,15 +94,17 @@ def buy():
         myCoin = upbit.get_balance(coin)
 
     if myMoney > 0:
-        print("## buy coin\n")
+        print("## buy coin")
         if isTest:
             testMoney = 0
             testCoin = (myMoney - (myMoney * fee)) / price
             boughtPrice = price
+            print("현재시간: ", datetime.now())
             print("자산 :", testMoney + (price * testCoin))
             print("현금: ", testMoney)
             print("코인: ", testCoin)
             print("매수가: ", boughtPrice)
+            print("\n")
         else:
             print("실제 거래입니다.")
 
@@ -120,15 +122,17 @@ def sell():
         myCoin = upbit.get_balance(coin)
 
     if myCoin > 0:
-        print("## sell coin\n")
+        print("## sell coin")
         if isTest:
             testMoney = (myCoin * price) - ((myCoin * price) * fee)
             testCoin = 0
             boughtPrice = 0
+            print("현재시간: ", datetime.now())
             print("자산 :", testMoney + (price * testCoin))
             print("현금: ", testMoney)
             print("코인: ", testCoin)
             print("매도가: ", price)
+            print("\n")
         else:
             print("실제 거래입니다.")
 
