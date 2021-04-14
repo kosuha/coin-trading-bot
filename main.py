@@ -137,7 +137,7 @@ def sell():
             print("실제 거래입니다.")
 
 def trade():
-    df = pyupbit.get_ohlcv(coin, interval="minute1", count=20)
+    df = pyupbit.get_ohlcv(coin, interval="minute5", count=20)
 
     if df.empty:
         return 0
