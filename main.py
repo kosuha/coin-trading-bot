@@ -28,7 +28,7 @@ isTest = True
 testMoney = 100000.0
 testCoin = 0.0
 fee = 0.0005
-coin = "KRW-DOGE"
+coin = "KRW-XRP"
 boughtPrice = 0;
 
 print("현재가: ", pyupbit.get_current_price(coin))
@@ -66,23 +66,17 @@ def indicators(df):
 
 
 def checkBuy(indicators):
-    if indicators['now_5'] > indicators['now_10'] and indicators['price'] > indicators['now_5'] and indicators['now_5'] > indicators['pre_5']:
+    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
         return True
-
-    # if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
-    #     return True
 
     return False
 
 def checkSell(indicators):
-    if indicators['price'] * 1.005 < indicators['now_5']:
+    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
         return True
     
-    # if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
-    #     return True
-    
-    # if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
-    #     return True
+    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
+        return True
 
     return False
 
