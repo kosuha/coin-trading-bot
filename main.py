@@ -33,6 +33,7 @@ def buy_coin():
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money)
         data_insert(buy_data)
+        print("# BUY #")
 
 # 코인 판매
 def sell_coin():
@@ -40,6 +41,7 @@ def sell_coin():
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
         data_insert(sell_data)
+        print("# SELL #")
 
 # 목표가 설정
 def get_target_price():
