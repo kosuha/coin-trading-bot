@@ -8,9 +8,9 @@ import numpy as np
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-testLength = 1 # 곱하기 ?
+testLength = 40
 testDataInterval = "week" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-
+testEndDate = None # None으로 하면 현재까지
 startMoney = 100000.0
 testMoney = startMoney
 bougthPrice = 0;
@@ -102,18 +102,23 @@ def trade(df):
     print("자산 :", testMoney + (price * testCoin))
 
 def getData():
-    date = None
+    date = testEndDate
     dfs = [ ]
 
-    for i in range(testLength):
-        df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=4)
+    if testLength > 200:
+        loopNum = round(testLength / 200)
+        remainder = testLength % 200
+        for i in range(loopNum):
+            df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=200)
+            dfs.append(df)
+            date = df.index[0]
+            time.sleep(0.1)
+        df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=remainder)
         dfs.append(df)
-
-        date = df.index[0]
-        time.sleep(0.1)
-
-    df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=1)
-    dfs.append(df)
+        
+    else:
+        df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=testLength)
+        dfs.append(df)
 
     df = pd.concat(dfs).sort_index()
     return df
