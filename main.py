@@ -20,12 +20,13 @@ coin = "KRW-XRP"
 currency = "KRW"
 interval = "week"
 k = 0.07442
-
+print("\n")
 print("########### START ###########")
 print("coin : ", coin)
 print("currency : ", currency)
 print("interval : ", interval)
 print("K : ", 0.07442)
+print("\n")
 
 # 코인 구매
 def buy_coin():
@@ -69,8 +70,6 @@ def get_last_week_ma5():
 
 # DB에 거래정보 입력
 def data_insert(data):
-    print(data)
-
     current_price = pyupbit.get_current_price(coin)
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
