@@ -15,150 +15,98 @@ conn = engine.connect()
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
 
-# # KRW-DOGE 조회
-# print(upbit.get_balance("KRW-DOGE"))
-# # 보유 현금 조회
-# print(upbit.get_balance("KRW"))
-# # 현재 가격
-# print("현재가: ", pyupbit.get_current_price("KRW-XRP"))
-# # 1분 단위로 시, 고, 저, 종, 거래량 데이터 count만큼 가져오기
-# print(pyupbit.get_ohlcv("KRW-DOGE", interval="minute1", count=1))
- 
-isTest = True
-testMoney = 100000.0
-testCoin = 0.0
-fee = 0.0005
+# 프로그램 값 설정
 coin = "KRW-XRP"
-boughtPrice = 0;
+currency = "KRW"
+interval = "week"
+k = 0.07442
 
-print("현재가: ", pyupbit.get_current_price(coin))
-print("시작시간: ", datetime.now())
+print("########### START ###########")
+print("coin : ", coin)
+print("currency : ", currency)
+print("interval : ", interval)
+print("K : ", 0.07442)
 
-# 이평선
-def indicators(df):
-    price = pyupbit.get_current_price(coin)
-    # print(df)
-    sum_5 = 0
-    sum_10 = 0
-    sum_20 = 0
-    preSum_5 = 0
-    prePreSum_5 = 0
-    preSum_10 = 0
+# 코인 구매
+def buy_coin():
+    my_money = upbit.get_balance(currency)
+    if my_money > 5000:
+        buy_data = upbit.buy_market_order(coin, my_money)
+        data_insert(buy_data)
 
-    for i in range(15, 20):
-        sum_5 += df.close[i]
+# 코인 판매
+def sell_coin():
+    my_coin = upbit.get_balance(coin)
+    if my_coin > 0:
+        sell_data = upbit.sell_market_order(coin, my_coin)
+        data_insert(sell_data)
 
-    for i in range(10, 20):
-        sum_10 += df.close[i]
+# 목표가 설정
+def get_target_price():
+    df = pyupbit.get_ohlcv(coin, interval=interval, count=5)
+    last_week = df.iloc[-2]
 
-    for i in range(0, 20):
-        sum_20 += df.close[i]
+    this_week_open = last_week['close']
+    last_week_high = last_week['high']
+    last_week_low = last_week['low']
+    target = this_week_open + (last_week_high - last_week_low) * k
 
-    for i in range(14, 19):
-        preSum_5 += df.close[i]
+    return target
 
-    for i in range(9, 19):
-        preSum_10 += df.close[i]
+# 오늘의 요일을 출력, 0 = 월요일
+def today_weekday():
+    return datetime.today().weekday()
 
-    for i in range(13, 18):
-        prePreSum_5 += df.close[i]
+# 5이동평균값 구하기
+def get_last_week_ma5():
+    df = pyupbit.get_ohlcv(coin, interval=interval, count=5)
+    close = df['close']
+    ma = close.rolling(window=5).mean()
 
-    bar_1 = df.close[19] - df.open[19] # 음수면 음봉 양수면 양봉
-    bar_2 = df.close[18] - df.open[18]
+    return ma[-2]
 
-    return { 'price': price ,'now_5': sum_5 / 5, 'now_10': sum_10 / 10, 'now_20': sum_20 / 20, 'pre_5': preSum_5 / 5, 'pre_10': preSum_10 / 10, 'pre_pre_5': prePreSum_5 / 5 }
+# DB에 거래정보 입력
+def data_insert(data):
+    print(data)
 
+    current_price = pyupbit.get_current_price(coin)
+    my_money = upbit.get_balance(currency)
+    my_coin = upbit.get_balance(coin)
+    total = my_money + (current_price * my_coin)
 
-def checkBuy(indicators):
-    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] > indicators['pre_5']:
-        return True
-        
-    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['pre_pre_5'] > indicators['pre_5'] and indicators['pre_5'] < indicators['now_5']:
-        return True
+    df = pd.DataFrame({
+        "side": data['side'],
+        "price": data['price'],
+        "volume": data['volume'],
+        "total": total,
+        "money": my_money,
+        "coin": my_coin,
+        "market": data['market'],
+        "date": data['created_at']
+         })
     
-    return False
+    df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
 
-def checkSell(indicators):
-    if indicators['now_5'] < indicators['now_10'] and indicators['now_10'] < indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
-        return True
-    
-    if indicators['now_5'] > indicators['now_10'] and indicators['now_10'] > indicators['now_20'] and indicators['now_5'] < indicators['pre_5']:
-        return True
+# 프로그램 실행 시 목표가와 이동평균값 계산
+target_price = get_target_price()
+ma5 = get_last_week_ma5()
 
-    return False
-
-def buy():
-    global testMoney, testCoin, boughtPrice
-    price = pyupbit.get_current_price(coin)
-    myMoney = 0
-    myCoin = 0
-
-    if isTest:
-        myMoney = testMoney
-        myCoin = testCoin
-    else:
-        myMoney = upbit.get_balance("KRW")
-        myCoin = upbit.get_balance(coin)
-
-    if myMoney > 0:
-        print("## buy coin")
-        if isTest:
-            testMoney = 0
-            testCoin = (myMoney - (myMoney * fee)) / price
-            boughtPrice = price
-            print("현재시간: ", datetime.now())
-            print("자산 :", testMoney + (price * testCoin))
-            print("현금: ", testMoney)
-            print("코인: ", testCoin)
-            print("매수가: ", boughtPrice)
-            print("\n")
-        else:
-            print("실제 거래입니다.")
-
-def sell():
-    global testMoney, testCoin, boughtPrice
-    price = pyupbit.get_current_price(coin)
-    myMoney = 0
-    myCoin = 0
-
-    if isTest:
-        myMoney = testMoney
-        myCoin = testCoin
-    else:
-        myMoney = upbit.get_balance("KRW")
-        myCoin = upbit.get_balance(coin)
-
-    if myCoin > 0:
-        print("## sell coin")
-        if isTest:
-            testMoney = (myCoin * price) - ((myCoin * price) * fee)
-            testCoin = 0
-            boughtPrice = 0
-            print("현재시간: ", datetime.now())
-            print("자산 :", testMoney + (price * testCoin))
-            print("현금: ", testMoney)
-            print("코인: ", testCoin)
-            print("매도가: ", price)
-            print("\n")
-        else:
-            print("실제 거래입니다.")
-
-def trade():
-    df = pyupbit.get_ohlcv(coin, interval="minute5", count=20)
-
-    if df.empty:
-        return 0
-
-    ma = indicators(df)
-    price = pyupbit.get_current_price(coin)
-
-    if checkBuy(ma):
-        buy()
-    if checkSell(ma):
-        sell()
-
-schedule.every(60).seconds.do(trade)
-
+# 실행
 while True:
-    schedule.run_pending()
+    try:
+        if today_weekday() == 3:
+            now_time = int(time.strftime('%H%M%S'))
+            if 85900 < now_time < 90000:
+                sell_coin()
+            if 90000 < now_time < 90030:
+                target_price = get_target_price()
+                ma5 = get_last_week_ma5()
+
+        current_price = pyupbit.get_current_price(coin)
+
+        if (current_price > target_price) and (current_price > ma5):
+            buy_coin()
+    except:
+        print("########### ERROR ###########")
+
     time.sleep(1)
