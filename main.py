@@ -20,6 +20,7 @@ coin = "KRW-XRP"
 currency = "KRW"
 interval = "week"
 k = 0.07442
+
 print("\n")
 print("########### START ###########")
 print("coin : ", coin)
