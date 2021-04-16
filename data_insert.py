@@ -2,7 +2,7 @@ import pyupbit
 import time
 import schedule
 import config.conn as pw
-import config.upbitToken as token
+import config.upbit_token as token
 import pandas as pd
 import pymysql
 from sqlalchemy import create_engine

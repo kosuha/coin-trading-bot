@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 import schedule
 import config.conn as pw
-import config.upbitToken as token
+import config.upbit_token as token
 import pandas as pd
 import pymysql
 from sqlalchemy import create_engine
@@ -47,12 +47,12 @@ def sell_coin():
 # 목표가 설정
 def get_target_price():
     df = pyupbit.get_ohlcv(coin, interval=interval, count=5)
-    last_week = df.iloc[-2]
+    last_interval = df.iloc[-2]
 
-    this_week_open = last_week['close']
-    last_week_high = last_week['high']
-    last_week_low = last_week['low']
-    target = this_week_open + (last_week_high - last_week_low) * k
+    this_interval_open = last_interval['close']
+    last_interval_high = last_interval['high']
+    last_interval_low = last_interval['low']
+    target = this_interval_open + (last_interval_high - last_interval_low) * k
     print("매수 목표가 : ", target)
     return target
 
@@ -61,7 +61,7 @@ def today_weekday():
     return datetime.today().weekday()
 
 # 5이동평균값 구하기
-def get_last_week_ma5():
+def get_last_interval_ma5():
     df = pyupbit.get_ohlcv(coin, interval=interval, count=10)
     close = df['close']
     ma = close.rolling(window=5).mean()
@@ -92,7 +92,7 @@ def data_insert(data):
 
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
-ma5 = get_last_week_ma5()
+ma5 = get_last_interval_ma5()
 
 # 실행
 while True:
@@ -102,7 +102,7 @@ while True:
             if 90000 < now_time < 90010:
                 sell_coin()
                 target_price = get_target_price()
-                ma5 = get_last_week_ma5()
+                ma5 = get_last_interval_ma5()
 
         current_price = pyupbit.get_current_price(coin)
 

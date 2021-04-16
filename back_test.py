@@ -8,41 +8,41 @@ import numpy as np
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-testLength = 40
-testDataInterval = "week" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-testEndDate = None # None으로 하면 현재까지
-startMoney = 100000.0
-testMoney = startMoney
-bougthPrice = 0;
-testCoin = 0.0
+test_length = 100
+test_data_interval = "week" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
+test_end_date = None # None으로 하면 현재까지
+start_money = 100000.0
+test_money = start_money
+bougth_price = 0;
+test_coin = 0.0
 fee = 0.0005
 coin = "KRW-XRP"
 
 print("------------------------------- Test Start -------------------------------")
 
-def getData():
-    date = testEndDate
+def get_data():
+    date = test_end_date
     dfs = [ ]
 
-    if testLength > 200:
-        loopNum = round(testLength / 200)
-        remainder = testLength % 200
-        for i in range(loopNum):
-            df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=200)
+    if test_length > 200:
+        loop_num = round(test_length / 200)
+        remainder = test_length % 200
+        for i in range(loop_num):
+            df = pyupbit.get_ohlcv(coin, interval=test_data_interval, to=date, count=200)
             dfs.append(df)
             date = df.index[0]
             time.sleep(0.1)
-        df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=remainder)
+        df = pyupbit.get_ohlcv(coin, interval=test_data_interval, to=date, count=remainder)
         dfs.append(df)
         
     else:
-        df = pyupbit.get_ohlcv(coin, interval=testDataInterval, to=date, count=testLength)
+        df = pyupbit.get_ohlcv(coin, interval=test_data_interval, to=date, count=test_length)
         dfs.append(df)
 
     df = pd.concat(dfs).sort_index()
     return df
 
-def larryRor(df_, k):
+def larry_ror(df_, k):
     slippage = 0.0002
     df = df_
     df['range'] = (df['high'] - df['low']) * k
@@ -52,26 +52,26 @@ def larryRor(df_, k):
     df['hpr'] = df['ror'].cumprod()
     ror = df['hpr'][-2]
 
-    # fileName = "excels/larry_{}_{}_k{}.xlsx".format(testLength, testDataInterval, k)
-    # df.to_excel(fileName)
+    # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
+    # df.to_excel(file_name)
 
     return ror
 
-data = getData()
-# larryRor(data, 0.0245)
-rorList = []
-for k in np.arange(0.001, 1.000, 0.001):
-    ror = larryRor(data, k)
-    rorList.append([round(k, 5), round((ror - 1) * 100, 2)])
+data = get_data()
+
+ror_list = []
+for k in np.arange(0.01, 10.00, 0.01):
+    ror = larry_ror(data, k)
+    ror_list.append([round(k, 5), round((ror - 1) * 100, 2)])
     # print("- k: ", round(k, 5), " / 수익률: ", round((ror - 1) * 100, 2), " %")
 
-rorList.sort(key = lambda x:x[1])
+ror_list.sort(key = lambda x:x[1])
 
-for i in rorList:
+for i in ror_list:
     print("- k: ", i[0], " / 수익률: ", i[1], " %")
 
 print("\n")
-print("Interval: ", testDataInterval)
+print("Interval: ", test_data_interval)
 print("테스트시작: ", data.index[0])
 print("테스트종료: ", data.index[len(data)-1])
 print("시작가: ", data.close[0])
