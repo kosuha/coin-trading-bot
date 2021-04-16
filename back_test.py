@@ -1,14 +1,15 @@
 import pyupbit
 import time
 import pandas as pd
-import config.upbitToken as token
+import config.upbit_token as token
 import numpy as np
+import math
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 100
+test_length = 80
 test_data_interval = "week" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # None으로 하면 현재까지
 start_money = 100000.0
@@ -16,7 +17,8 @@ test_money = start_money
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
-coin = "KRW-XRP"
+slippage = 0.01
+coin = "KRW-TRX"
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -25,7 +27,7 @@ def get_data():
     dfs = [ ]
 
     if test_length > 200:
-        loop_num = round(test_length / 200)
+        loop_num = math.floor(test_length / 200)
         remainder = test_length % 200
         for i in range(loop_num):
             df = pyupbit.get_ohlcv(coin, interval=test_data_interval, to=date, count=200)
@@ -43,7 +45,7 @@ def get_data():
     return df
 
 def larry_ror(df_, k):
-    slippage = 0.0002
+    
     df = df_
     df['range'] = (df['high'] - df['low']) * k
     df['range_shift1'] = df['range'].shift(1)
