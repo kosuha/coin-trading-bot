@@ -34,7 +34,7 @@ print("\n")
 def buy_coin():
     my_money = upbit.get_balance(currency)
     if my_money > 5000:
-        buy_data = upbit.buy_market_order(coin, my_money - (my_money * fee))
+        buy_data = upbit.buy_market_order(coin, my_money - 5000)
         data_insert(buy_data)
 
 # 코인 판매
