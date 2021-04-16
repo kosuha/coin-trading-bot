@@ -96,11 +96,10 @@ ma5 = get_last_week_ma5()
 # 실행
 while True:
     try:
-        if today_weekday() == 3:
+        if today_weekday() == 0:
             now_time = int(time.strftime('%H%M%S'))
-            if 85900 < now_time < 90000:
+            if 90000 < now_time < 90010:
                 sell_coin()
-            if 90000 < now_time < 90030:
                 target_price = get_target_price()
                 ma5 = get_last_week_ma5()
 
