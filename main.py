@@ -19,7 +19,7 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 coin = "KRW-XRP"
 currency = "KRW"
 interval = "week"
-fee = 0.05
+fee = 0.0005
 k = 0.07442
 
 print("\n")
