@@ -9,7 +9,7 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 80
+test_length = 5
 test_data_interval = "week" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # None으로 하면 현재까지
 start_money = 100000.0
@@ -18,7 +18,7 @@ bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
 slippage = 0.01
-coin = "KRW-TRX"
+coin = "KRW-XRP"
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -27,7 +27,7 @@ def get_data():
     dfs = [ ]
 
     if test_length > 200:
-        loop_num = math.floor(test_length / 200)
+        loop_num = test_length // 200
         remainder = test_length % 200
         for i in range(loop_num):
             df = pyupbit.get_ohlcv(coin, interval=test_data_interval, to=date, count=200)
@@ -62,10 +62,9 @@ def larry_ror(df_, k):
 data = get_data()
 
 ror_list = []
-for k in np.arange(0.01, 10.00, 0.01):
+for k in np.arange(0.001, 1.000, 0.001):
     ror = larry_ror(data, k)
     ror_list.append([round(k, 5), round((ror - 1) * 100, 2)])
-    # print("- k: ", round(k, 5), " / 수익률: ", round((ror - 1) * 100, 2), " %")
 
 ror_list.sort(key = lambda x:x[1])
 
