@@ -144,7 +144,8 @@ while True:
 
         if (current_price > target_price) and (current_price > ma5):
             buy_coin()
-    except:
+    except Exception as e:
         print("########### ERROR ###########")
+        print(e)
 
     time.sleep(1)
