@@ -137,10 +137,11 @@ while True:
                 ma5 = get_last_interval_ma5()
 
         current_price = pyupbit.get_current_price(coin)
+        print(time.strftime('%Y/%m/%d %H:%M:%S'))
         print("현재가: ", current_price)
         print("매수 목표가: ", target_price)
         print()
-        
+
         if (current_price > target_price) and (current_price > ma5):
             buy_coin()
     except:
