@@ -19,15 +19,15 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 # 프로그램 값 설정
 coin = "KRW-XRP"
 currency = "KRW"
-interval = "week"
-k = 0.07442
+interval = "day"
+k = 0
 
 print("\n")
 print("########### START ###########")
 print("coin : ", coin)
 print("currency : ", currency)
 print("interval : ", interval)
-print("K : ", 0.07442)
+print("K : ", k)
 print("\n")
 
 # 코인 구매
@@ -68,9 +68,6 @@ def get_last_interval_ma5():
     ma = close.rolling(window=5).mean()
 
     return ma[-2]
-
-
-{'uuid': '0e73602a-d800-4d37-9369-7c0ccf043599', 'side': 'ask', 'ord_type': 'market', 'price': None, 'state': 'wait', 'market': 'KRW-XRP', 'created_at': '2021-04-19T09:00:02+09:00', 'volume': '42.60089686', 'remaining_volume': '42.60089686', 'reserved_fee': '0.0', 'remaining_fee': '0.0', 'paid_fee': '0.0', 'locked': '42.60089686', 'executed_volume': '0.0', 'trades_count': 0}
 
 # DB에 거래정보 입력
 def buy_data_insert(data):
@@ -129,12 +126,11 @@ ma5 = get_last_interval_ma5()
 # 실행
 while True:
     try:
-        if today_weekday() == 0:
-            now_time = int(time.strftime('%H%M%S'))
-            if 90000 < now_time < 90010:
-                sell_coin()
-                target_price = get_target_price()
-                ma5 = get_last_interval_ma5()
+        now_time = int(time.strftime('%H%M%S'))
+        if 90000 < now_time < 90010:
+            sell_coin()
+            target_price = get_target_price()
+            ma5 = get_last_interval_ma5()
 
         current_price = pyupbit.get_current_price(coin)
         print(time.strftime('%Y/%m/%d %H:%M:%S'))
@@ -142,8 +138,9 @@ while True:
         print("매수 목표가: ", target_price)
         print()
 
-        if (current_price > target_price) and (current_price > ma5):
+        if (current_price > target_price) and (current_price < target_price + (target_price * 0.015)) and (current_price > ma5):
             buy_coin()
+
     except Exception as e:
         print("########### ERROR ###########")
         print(e)
