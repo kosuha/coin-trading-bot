@@ -1,10 +1,10 @@
 import pyupbit
 import time
 from datetime import datetime
-import schedule
 import config.conn as pw
 import config.upbit_token as token
 import market_order_info as market
+import slack_bot
 import pandas as pd
 import pymysql
 from sqlalchemy import create_engine
@@ -36,6 +36,7 @@ def buy_coin():
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
         buy_data_insert(buy_data)
+        slack_bot.post_message(f"Buy {coin}: {str(buy_data)}")
 
 # 코인 판매
 def sell_coin():
@@ -44,6 +45,7 @@ def sell_coin():
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
         sell_data_insert(sell_data, prev_my_money)
+        slack_bot.post_message(f"Sell {coin}: {str(sell_data)}")
 
 # 목표가 설정
 def get_target_price():
@@ -88,7 +90,7 @@ def buy_data_insert(data):
         "market": data['market'],
         "date": data['created_at']
          }, index=[0])
-    
+
     df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
 
 def sell_data_insert(data, prev_my_money):
@@ -117,6 +119,8 @@ target_price = get_target_price()
 ma5 = get_last_interval_ma5()
 
 # 실행
+slack_bot.post_message(f"Start Trader")
+
 while True:
     try:
         now_time = int(time.strftime('%H%M%S'))
@@ -126,10 +130,10 @@ while True:
             ma5 = get_last_interval_ma5()
 
         current_price = pyupbit.get_current_price(coin)
-        print(time.strftime('%Y/%m/%d %H:%M:%S'))
-        print("현재가: ", current_price)
-        print("매수 목표가: ", target_price)
-        print()
+        # print(time.strftime('%Y/%m/%d %H:%M:%S'))
+        # print("현재가: ", current_price)
+        # print("매수 목표가: ", target_price)
+        # print()
 
         if (current_price > target_price) and (current_price < target_price + (target_price * 0.015)) and (current_price > ma5):
             buy_coin()
@@ -137,5 +141,6 @@ while True:
     except Exception as e:
         print("########### ERROR ###########")
         print(e)
+        slack_bot.post_message(f"ERROR: {e}")
 
     time.sleep(1)
