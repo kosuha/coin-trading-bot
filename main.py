@@ -129,10 +129,12 @@ while True:
         now_time = int(time.strftime('%H%M%S'))
         if 85940 <= now_time < 90000:
             sell_coin()
-        else:
+        elif 90000 <= now_time < 90010:
             target_price = get_target_price()
             ma5 = get_last_interval_ma5()
-            current_price = pyupbit.get_current_price(coin)
+            
+        current_price = pyupbit.get_current_price(coin)
+        if not 85940 <= now_time < 90000:
             if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (current_price > ma5):
                 buy_coin()
 
