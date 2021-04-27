@@ -122,7 +122,7 @@ target_price = get_target_price()
 ma5 = get_last_interval_ma5()
 
 # 실행
-slack_bot.post_message(f"Start Trader \n-coin: {coin} \n-currency: {currency} \n-interval: {interval} \n-K: {k})")
+slack_bot.post_message(f"Start Trader \n-coin: {coin} \n-currency: {currency} \n-interval: {interval} \n-K: {k}")
 
 while True:
     try:
