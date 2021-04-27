@@ -127,19 +127,19 @@ slack_bot.post_message(f"Start Trader \n-coin: {coin} \n-currency: {currency} \n
 while True:
     try:
         now_time = int(time.strftime('%H%M%S'))
-        if 90000 < now_time < 90010:
+        if 85940 <= now_time < 90000:
             sell_coin()
+        else:
             target_price = get_target_price()
             ma5 = get_last_interval_ma5()
+            current_price = pyupbit.get_current_price(coin)
+            if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (current_price > ma5):
+                buy_coin()
 
-        current_price = pyupbit.get_current_price(coin)
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
         # print("현재가: ", current_price)
         # print("매수 목표가: ", target_price)
         # print()
-
-        if (current_price > target_price) and (current_price < target_price + (target_price * 0.015)) and (current_price > ma5):
-            buy_coin()
 
     except Exception as e:
         print("########### ERROR ###########")
