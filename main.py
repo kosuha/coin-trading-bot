@@ -36,7 +36,7 @@ def buy_coin():
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
         #buy_data_insert(buy_data)
-        slack_bot.post_message(f"Buy {coin}: {str(buy_data)}, current price: {current_price}")
+        slack_bot.post_message(f"Buy \n\n{str(buy_data)} \n\ncurrent price: {current_price}")
 
 # 코인 판매
 def sell_coin():
@@ -46,7 +46,7 @@ def sell_coin():
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
         #sell_data_insert(sell_data, prev_my_money)
-        slack_bot.post_message(f"Sell {coin}: {str(sell_data)}, current price: {current_price}")
+        slack_bot.post_message(f"Sell \n\n{str(sell_data)} \n\ncurrent price: {current_price}")
 
 # 목표가 설정
 def get_target_price():
