@@ -116,6 +116,7 @@ def sell_data_insert(data, prev_my_money):
     
     df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
 '''
+
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
 ma5 = get_last_interval_ma5()

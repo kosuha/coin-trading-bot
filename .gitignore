@@ -2,3 +2,4 @@
 config/
 excels/
 __pycache__/
+output.log
