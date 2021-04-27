@@ -76,16 +76,10 @@ def buy_data_insert(data):
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     total = my_money + (current_price * my_coin)
-    balances = upbit.get_balances()
-    avg_buy_price = 0
-
-    for i in balances:
-        if i['currency'] == coin[4:]:
-            avg_buy_price = int(i['avg_buy_price'])
 
     df = pd.DataFrame({
         "side": data['side'],
-        "price": avg_buy_price,
+        "price": float(data['price']) / my_coin,
         "volume": my_coin,
         "fee": float(data['price']) * fee,
         "total": total,
@@ -103,11 +97,10 @@ def sell_data_insert(data, prev_my_money):
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     total = my_money + (current_price * my_coin)
-    price = (my_money - prev_my_money) / float(data['volume'])
 
     df = pd.DataFrame({
         "side": data['side'],
-        "price": price,
+        "price": current_price,
         "volume": float(data['volume']),
         "fee": (my_money - prev_my_money) * fee,
         "total": total,
