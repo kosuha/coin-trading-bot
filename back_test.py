@@ -9,9 +9,9 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 21
+test_length = 1000
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = None # "20210201"/None (None으로 하면 현재까지)
+test_end_date = "20210101" # "20210201"/None (None으로 하면 현재까지)
 start_money = 100000.0
 test_money = start_money
 bougth_price = 0;
@@ -19,6 +19,7 @@ test_coin = 0.0
 fee = 0.0005
 slippage = 0.001
 coin = "KRW-XRP"
+K = 0.5
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -68,9 +69,12 @@ data = get_data()
 
 # K값에 따른 수익률이 높은 순서대로 리스트에 정렬하여 출력
 ror_list = []
+check_K = []
 for k in np.arange(0.000, 1.000, 0.001):
     ror = larry_ror(data, k)
     ror_list.append([round(k, 5), round((ror - 1) * 100, 2)])
+    if k == K:
+        check_K.append([round(k, 5), round((ror - 1) * 100, 2)])
 
 ror_list.sort(key = lambda x:x[1])
 
@@ -86,4 +90,5 @@ print("시작가: ", data.close[0])
 print("종료가: ", data.close[len(data)-1])
 print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.close[0]) / data.close[0])*100, 3), "%")
 print("프로그램 최고 수익률: ", ror_list[len(ror_list) - 1][1], "%", "/ K =", ror_list[len(ror_list) - 1][0])
+print("K 값 수익률: ", check_K[0][1], "%", "/ K =", check_K[0][0])
 print("-------------------------------  Test End  -------------------------------")
