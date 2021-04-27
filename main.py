@@ -1,17 +1,16 @@
 import pyupbit
 import time
 from datetime import datetime
-import config.conn as pw
+# import config.conn as pw
 import config.upbit_token as token
 import market_order_info as market
 import slack_bot
-import pandas as pd
-import pymysql
-from sqlalchemy import create_engine
+# import pymysql
+# from sqlalchemy import create_engine
 
 # DB에 연결
-engine = create_engine(pw.conn)
-conn = engine.connect()
+# engine = create_engine(pw.conn)
+# conn = engine.connect()
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
@@ -33,19 +32,21 @@ print("\n")
 # 코인 구매
 def buy_coin():
     my_money = upbit.get_balance(currency)
+    current_price = pyupbit.get_current_price(coin)
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
-        buy_data_insert(buy_data)
-        slack_bot.post_message(f"Buy {coin}: {str(buy_data)}")
+        #buy_data_insert(buy_data)
+        slack_bot.post_message(f"Buy {coin}: {str(buy_data)}, current price: {current_price}")
 
 # 코인 판매
 def sell_coin():
     my_coin = upbit.get_balance(coin)
-    prev_my_money = upbit.get_balance(currency)
+    #prev_my_money = upbit.get_balance(currency)
+    current_price = pyupbit.get_current_price(coin)
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
-        sell_data_insert(sell_data, prev_my_money)
-        slack_bot.post_message(f"Sell {coin}: {str(sell_data)}")
+        #sell_data_insert(sell_data, prev_my_money)
+        slack_bot.post_message(f"Sell {coin}: {str(sell_data)}, current price: {current_price}")
 
 # 목표가 설정
 def get_target_price():
@@ -72,6 +73,7 @@ def get_last_interval_ma5():
     return ma[-2]
 
 # DB에 거래정보 입력
+'''
 def buy_data_insert(data):
     fee = float(market.order_info(coin)["bid_fee"])
     current_price = pyupbit.get_current_price(coin)
@@ -113,7 +115,7 @@ def sell_data_insert(data, prev_my_money):
          }, index=[0])
     
     df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
-
+'''
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
 ma5 = get_last_interval_ma5()
