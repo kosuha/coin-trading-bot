@@ -32,36 +32,38 @@ print("\n")
 # 코인 구매
 def buy_coin():
     my_money = upbit.get_balance(currency)
+    my_coin = upbit.get_balance(coin)
     current_price = pyupbit.get_current_price(coin)
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
         #buy_data_insert(buy_data)
         message = f"""
-        < Buy >
-        uuid: {buy_data['uuid']}
-        side: {buy_data['side']}
-        ord_type: {buy_data['ord_type']}
-        price: {buy_data['price']}
-        state: {buy_data['state']}
-        market: {buy_data['market']}
-        created_at: {buy_data['created_at']}
-        volume: {buy_data['volume']}
-        remaining_volume: {buy_data['remaining_volume']}
-        reserved_fee: {buy_data['reserved_fee']}
-        remaining_fee: {buy_data['remaining_fee']}
-        paid_fee: {buy_data['paid_fee']}
-        locked: {buy_data['locked']}
-        executed_volume: {buy_data['executed_volume']}
-        trades_count: {buy_data['trades_count']}
+            < Buy >
+            uuid: {buy_data['uuid']}
+            side: {buy_data['side']}
+            ord_type: {buy_data['ord_type']}
+            price: {buy_data['price']}
+            state: {buy_data['state']}
+            market: {buy_data['market']}
+            created_at: {buy_data['created_at']}
+            volume: {buy_data['volume']}
+            remaining_volume: {buy_data['remaining_volume']}
+            reserved_fee: {buy_data['reserved_fee']}
+            remaining_fee: {buy_data['remaining_fee']}
+            paid_fee: {buy_data['paid_fee']}
+            locked: {buy_data['locked']}
+            executed_volume: {buy_data['executed_volume']}
+            trades_count: {buy_data['trades_count']}
 
-        current price: {current_price}
-        
+            current price: {current_price}
+            total: {format(my_money + (my_coin * current_price), ",")}
 
         """
         slack_bot.post_message(message)
 
 # 코인 판매
 def sell_coin():
+    my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     #prev_my_money = upbit.get_balance(currency)
     current_price = pyupbit.get_current_price(coin)
@@ -69,25 +71,25 @@ def sell_coin():
         sell_data = upbit.sell_market_order(coin, my_coin)
         #sell_data_insert(sell_data, prev_my_money)
         message = f"""
-        < Buy >
-        uuid: {sell_data['uuid']}
-        side: {sell_data['side']}
-        ord_type: {sell_data['ord_type']}
-        price: {sell_data['price']}
-        state: {sell_data['state']}
-        market: {sell_data['market']}
-        created_at: {sell_data['created_at']}
-        volume: {sell_data['volume']}
-        remaining_volume: {sell_data['remaining_volume']}
-        reserved_fee: {sell_data['reserved_fee']}
-        remaining_fee: {sell_data['remaining_fee']}
-        paid_fee: {sell_data['paid_fee']}
-        locked: {sell_data['locked']}
-        executed_volume: {sell_data['executed_volume']}
-        trades_count: {sell_data['trades_count']}
+            < Buy >
+            uuid: {sell_data['uuid']}
+            side: {sell_data['side']}
+            ord_type: {sell_data['ord_type']}
+            price: {sell_data['price']}
+            state: {sell_data['state']}
+            market: {sell_data['market']}
+            created_at: {sell_data['created_at']}
+            volume: {sell_data['volume']}
+            remaining_volume: {sell_data['remaining_volume']}
+            reserved_fee: {sell_data['reserved_fee']}
+            remaining_fee: {sell_data['remaining_fee']}
+            paid_fee: {sell_data['paid_fee']}
+            locked: {sell_data['locked']}
+            executed_volume: {sell_data['executed_volume']}
+            trades_count: {sell_data['trades_count']}
 
-        current price: {current_price}
-        
+            current price: {current_price}
+            total: {format(my_money + (my_coin * current_price), ",")}
 
         """
         slack_bot.post_message(message)
@@ -165,8 +167,22 @@ def sell_data_insert(data, prev_my_money):
 target_price = get_target_price()
 ma5 = get_last_interval_ma5()
 
+start_money = upbit.get_balance(currency)
+start_coin = upbit.get_balance(coin)
+start_price = pyupbit.get_current_price(coin)
+
 # 실행
-slack_bot.post_message(f"<Start Trader> \ncoin: {coin} \ncurrency: {currency} \ninterval: {interval} \nK: {k} \ndate: {time.strftime('%Y/%m/%d %H:%M:%S')} \n\n")
+start_message = f"""
+    <Start Trader> 
+    coin: {coin}
+    currency: {currency}
+    interval: {interval}
+    K: {k}
+    date: {time.strftime('%Y/%m/%d %H:%M:%S')}
+    total: {format(start_money + (start_coin * start_price), ",")}
+
+"""
+slack_bot.post_message(start_message)
 
 while True:
     try:
