@@ -36,7 +36,29 @@ def buy_coin():
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
         #buy_data_insert(buy_data)
-        slack_bot.post_message(f"Buy \n\n{str(buy_data)} \n\ncurrent price: {current_price}")
+        message = f"""
+        < Buy >
+        uuid: {buy_data['uuid']}
+        side: {buy_data['side']}
+        ord_type: {buy_data['ord_type']}
+        price: {buy_data['price']}
+        state: {buy_data['state']}
+        market: {buy_data['market']}
+        created_at: {buy_data['created_at']}
+        volume: {buy_data['volume']}
+        remaining_volume: {buy_data['remaining_volume']}
+        reserved_fee: {buy_data['reserved_fee']}
+        remaining_fee: {buy_data['remaining_fee']}
+        paid_fee: {buy_data['paid_fee']}
+        locked: {buy_data['locked']}
+        executed_volume: {buy_data['executed_volume']}
+        trades_count: {buy_data['trades_count']}
+
+        current price: {current_price}
+        
+
+        """
+        slack_bot.post_message(message)
 
 # 코인 판매
 def sell_coin():
@@ -46,7 +68,29 @@ def sell_coin():
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
         #sell_data_insert(sell_data, prev_my_money)
-        slack_bot.post_message(f"Sell \n\n{str(sell_data)} \n\ncurrent price: {current_price}")
+        message = f"""
+        < Buy >
+        uuid: {sell_data['uuid']}
+        side: {sell_data['side']}
+        ord_type: {sell_data['ord_type']}
+        price: {sell_data['price']}
+        state: {sell_data['state']}
+        market: {sell_data['market']}
+        created_at: {sell_data['created_at']}
+        volume: {sell_data['volume']}
+        remaining_volume: {sell_data['remaining_volume']}
+        reserved_fee: {sell_data['reserved_fee']}
+        remaining_fee: {sell_data['remaining_fee']}
+        paid_fee: {sell_data['paid_fee']}
+        locked: {sell_data['locked']}
+        executed_volume: {sell_data['executed_volume']}
+        trades_count: {sell_data['trades_count']}
+
+        current price: {current_price}
+        
+
+        """
+        slack_bot.post_message(message)
 
 # 목표가 설정
 def get_target_price():
@@ -122,18 +166,27 @@ target_price = get_target_price()
 ma5 = get_last_interval_ma5()
 
 # 실행
-slack_bot.post_message(f"Start Trader \n-coin: {coin} \n-currency: {currency} \n-interval: {interval} \n-K: {k}")
+slack_bot.post_message(f"<Start Trader> \ncoin: {coin} \ncurrency: {currency} \ninterval: {interval} \nK: {k} \ndate: {time.strftime('%Y/%m/%d %H:%M:%S')} \n\n")
 
 while True:
     try:
+        current_price = pyupbit.get_current_price(coin)
         now_time = int(time.strftime('%H%M%S'))
+
+        # 매도
         if 85940 <= now_time < 90000:
-            sell_coin()
+            # k값이 0이면 상승장에 매도를 하지 않음
+            if k == 0 and current_price > ma5:
+                pass
+            else:
+                sell_coin()
+
+        # 목표가, 이평선 계산
         elif 90000 <= now_time < 90010:
             target_price = get_target_price()
             ma5 = get_last_interval_ma5()
-            
-        current_price = pyupbit.get_current_price(coin)
+        
+        # 매수
         if not 85940 <= now_time < 90000:
             if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (current_price > ma5):
                 buy_coin()
@@ -146,6 +199,6 @@ while True:
     except Exception as e:
         print("########### ERROR ###########")
         print(e)
-        slack_bot.post_message(f"ERROR: {e}")
+        slack_bot.post_message(f"<ERROR> \n{e}")
 
     time.sleep(1)
