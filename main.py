@@ -71,7 +71,7 @@ def sell_coin():
         sell_data = upbit.sell_market_order(coin, my_coin)
         #sell_data_insert(sell_data, prev_my_money)
         message = f"""
-        < Buy >
+        < Sell >
         uuid: {sell_data['uuid']}
         side: {sell_data['side']}
         ord_type: {sell_data['ord_type']}
@@ -166,6 +166,8 @@ def sell_data_insert(data, prev_my_money):
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
 ma5 = get_last_interval_ma5()
+df_open = pyupbit.get_ohlcv(coin, interval=interval, count=1)
+open_price = df_open.open[0]
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(coin)
@@ -197,19 +199,22 @@ while True:
             is_5minute = True
 
         # 매도
-        if is_5minute and 0 <= now_second < 3:
-            # 목표가, 이평선 계산
-            target_price = get_target_price()
-            ma5 = get_last_interval_ma5()
-
+        if is_5minute and 58 <= now_second:
             # k값이 0이면 상승장에 매도를 하지 않음
             if k == 0 and current_price > ma5:
                 pass
             else:
                 sell_coin()
-        
+
+        # 목표가, 이평선 계산
+        if is_5minute and 0 <= now_second < 3:
+            target_price = get_target_price()
+            ma5 = get_last_interval_ma5()
+            df_open = pyupbit.get_ohlcv(coin, interval=interval, count=1)
+            open_price = df_open.open[0]
+
         # 매수
-        if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (current_price > ma5):
+        if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (open_price > ma5):
             buy_coin()
 
         print(time.strftime('%Y/%m/%d %H:%M:%S'))
