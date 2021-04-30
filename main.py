@@ -221,10 +221,10 @@ while True:
         if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (open_price > ma5):
             buy_coin()
 
-        print(time.strftime('%Y/%m/%d %H:%M:%S'))
-        print("현재가: ", current_price)
-        print("매수 목표가: ", target_price)
-        print()
+        # print(time.strftime('%Y/%m/%d %H:%M:%S'))
+        # print("현재가: ", current_price)
+        # print("매수 목표가: ", target_price)
+        # print()
 
     except Exception as e:
         print("########### ERROR ###########")
