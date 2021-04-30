@@ -194,12 +194,16 @@ while True:
         now_minute = int(time.strftime('%M'))
         now_second = int(time.strftime('%S'))
         is_5minute = False
+        is_4minute = False
 
         if now_minute == 0 or now_minute % 5 == 0:
             is_5minute = True
 
+        if now_minute != 0 and now_minute % 5 == 4:
+            is_4minute = True
+
         # 매도
-        if is_5minute and 58 <= now_second:
+        if is_4minute and 58 <= now_second:
             # k값이 0이면 상승장에 매도를 하지 않음
             if k == 0 and current_price > ma5:
                 pass
