@@ -9,15 +9,15 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 90
-test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = "20210101" # "20210201"/None (None으로 하면 현재까지)
-start_money = 4000000
+test_length = 300 * 12 * 24
+test_data_interval = "minute5" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
+test_end_date = None # "20210201"/None (None으로 하면 현재까지)
+start_money = 1000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
-slippage = 0.001
+slippage = 0.0015
 coin = "KRW-XRP"
 currency = "KRW"
 K = 0.0
@@ -58,14 +58,18 @@ def larry_ror(df_, k):
     df['range'] = (df['high'] - df['low']) * k
     df['range_shift1'] = df['range'].shift(1)
     df['target'] = df['open'] + df['range'].shift(1)
-    df['ror'] = np.where((df['high'] > df['target']) & df['bull'], df['close'] / df['target'] - (fee + fee + slippage), 1)
+    df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
+    df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
+    df['buy_condition_shift1'] = df['buy_condition'].shift(1)
+    df['ror_trading'] = np.where(df['buy_condition'] & (df['buy_condition_shift1'] == False), df['close'] / df['target'] - (fee + fee + slippage), df['close'] / df['target'])
+    df['ror'] = np.where(df['buy_condition'] & df['bull'], df['ror_trading'], 1)
     df['hpr'] = df['ror'].cumprod()
     ror = df['hpr'][-1]
 
-    # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
-    # df.to_excel(file_name)
     if k == K:
         print(df)
+        # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
+        # df.to_excel(file_name)
     
     return ror
 
@@ -99,3 +103,4 @@ print("프로그램 최고 수익률: ", ror_list[len(ror_list) - 1][1], "%", "/
 print("K 값 수익률: ", check_K[0][1], "%", "/ K =", check_K[0][0])
 print("End Money: ", format(round(start_money + ((start_money - 5000) * check_K[0][1] * 0.01)), ","), currency)
 print("-------------------------------  Test End  -------------------------------")
+
