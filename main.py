@@ -18,7 +18,7 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 # 프로그램 값 설정
 coin = "KRW-XRP"
 currency = "KRW"
-interval = "minute5"
+interval = "day"
 k = 0
 
 print("\n")
@@ -191,19 +191,10 @@ while True:
     try:
         current_price = pyupbit.get_current_price(coin)
         now_time = int(time.strftime('%H%M%S'))
-        now_minute = int(time.strftime('%M'))
-        now_second = int(time.strftime('%S'))
-        is_5minute = False
-        is_4minute = False
-
-        if now_minute == 0 or now_minute % 5 == 0:
-            is_5minute = True
-
-        if now_minute != 0 and now_minute % 5 == 4:
-            is_4minute = True
+        today_weekday()
 
         # 매도
-        if is_4minute and 58 <= now_second:
+        if 85955 <= now_time < 90000:
             # k값이 0이면 상승장에 매도를 하지 않음
             if k == 0 and current_price > ma5:
                 pass
@@ -211,15 +202,14 @@ while True:
                 sell_coin()
 
         # 목표가, 이평선 계산
-        if is_5minute and 0 <= now_second < 3:
+        if 90000 <= now_time < 90005:
             target_price = get_target_price()
             ma5 = get_last_interval_ma5()
-            df_open = pyupbit.get_ohlcv(coin, interval=interval, count=1)
-            open_price = df_open.open[0]
 
         # 매수
-        if (current_price > target_price) and (current_price < target_price + (target_price * 0.01)) and (open_price > ma5):
-            buy_coin()
+        if not (85955 <= now_time < 90000):
+            if (current_price >= target_price) and (current_price < target_price + (target_price * 0.005)) and (current_price > ma5):
+                buy_coin()
 
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
         # print("현재가: ", current_price)
