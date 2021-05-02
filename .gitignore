@@ -3,3 +3,5 @@ config/
 excels/
 __pycache__/
 output.log
+logs
+models
