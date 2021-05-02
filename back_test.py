@@ -9,7 +9,7 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 365
+test_length = 30
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # "20210201"/None (None으로 하면 현재까지)
 start_money = 100000
@@ -53,18 +53,17 @@ def larry_ror(df_, k):
     
     df = df_
 
+    # 지표 계산
     df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
     df['ma10'] = df['close'].rolling(window=10).mean().shift(1)
     df['bull'] = df['open'] > df['ma5']
     df['range'] = (df['high'] - df['low']) * k
     df['range_shift1'] = df['range'].shift(1)
-    # df['is_minus'] = np.where(df['open'] > df['close'], True, False)
-    # df['is_minus_shift1'] = df['is_minus'].shift(1)
     df['target'] = df['open'] + df['range'].shift(1)
     df['sell_condition'] = np.where(df['bull'] == False, True, False)
-    # df['buy_condition'] = np.where((df['ma5'] > df['ma10']) & (df['sell_condition'] == False), True, False)
     df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
     
+    # 코인을 보유한 상태인지 나타냄
     bought_status = False
     for i in df.index:
         if df.at[i, 'buy_condition']:
@@ -73,6 +72,7 @@ def larry_ror(df_, k):
             bought_status = False
         df.loc[i, 'bought'] = bought_status
 
+    # 코인을 사고 팔때만 수수료가 포함된 수익률 계산
     df['bought_shift1'] = df['bought'].shift(1)
     df['bought_shift1'].fillna(False, inplace = True)
     df['ror'] = np.where(df['bought'] == True, df['close'] / df['target'], 1)
@@ -102,8 +102,8 @@ for k in np.arange(0.0, 1.0, 0.1):
 
 ror_list.sort(key = lambda x:x[1])
 
-# for i in ror_list:
-#     print("- K: ", i[0], " / 수익률: ", i[1], "%")
+for i in ror_list:
+    print("- K: ", i[0], " / 수익률: ", i[1], "%")
 
 # 테스트 결과 출력
 print("\n")
