@@ -166,8 +166,6 @@ def sell_data_insert(data, prev_my_money):
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
 ma5 = get_last_interval_ma5()
-df_open = pyupbit.get_ohlcv(coin, interval=interval, count=1)
-open_price = df_open.open[0]
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(coin)
