@@ -19,6 +19,7 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 coin = "KRW-XRP"
 currency = "KRW"
 interval = "day"
+ma_interval = 8
 k = 0
 
 print("\n")
@@ -26,6 +27,7 @@ print("########### START ###########")
 print("coin : ", coin)
 print("currency : ", currency)
 print("interval : ", interval)
+print("ma interval : ", ma_interval)
 print("K : ", k)
 print("\n")
 
@@ -110,11 +112,11 @@ def get_target_price():
 def today_weekday():
     return datetime.today().weekday()
 
-# 5이동평균값 구하기
-def get_last_interval_ma5():
+# 이동평균값 구하기
+def get_last_interval_ma():
     df = pyupbit.get_ohlcv(coin, interval=interval, count=10)
     close = df['close']
-    ma = close.rolling(window=5).mean()
+    ma = close.rolling(window=ma_interval).mean()
 
     return ma[-2]
 
@@ -165,7 +167,7 @@ def sell_data_insert(data, prev_my_money):
 
 # 프로그램 실행 시 목표가와 이동평균값 계산
 target_price = get_target_price()
-ma5 = get_last_interval_ma5()
+ma = get_last_interval_ma()
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(coin)
@@ -178,6 +180,7 @@ coin: {coin}
 start price: {start_price}
 currency: {currency}
 interval: {interval}
+ma interval: {ma_interval}
 K: {k}
 date: {time.strftime('%Y/%m/%d %H:%M:%S')}
 total: {format(round(start_money + (start_coin * start_price)), ",")}
@@ -194,7 +197,7 @@ while True:
         # 매도
         if 85955 <= now_time < 90000:
             # k값이 0이면 상승장에 매도를 하지 않음
-            if k == 0 and current_price > ma5:
+            if k == 0 and current_price > ma:
                 pass
             else:
                 sell_coin()
@@ -202,11 +205,11 @@ while True:
         # 목표가, 이평선 계산
         if 90000 <= now_time < 90005:
             target_price = get_target_price()
-            ma5 = get_last_interval_ma5()
+            ma = get_last_interval_ma()
 
         # 매수
         if not (85955 <= now_time < 90000):
-            if (current_price >= target_price) and (current_price < target_price + (target_price * 0.005)) and (current_price > ma5):
+            if (current_price >= target_price) and (current_price < target_price + (target_price * 0.005)) and (current_price > ma):
                 buy_coin()
 
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
