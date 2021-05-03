@@ -9,9 +9,9 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 1300
+test_length = 1000
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = None # "20210201"/None (None으로 하면 현재까지)
+test_end_date = "20201103" # "20210201"/None (None으로 하면 현재까지)
 start_money = 1000000
 test_money = start_money - 5000
 bougth_price = 0;
@@ -20,8 +20,8 @@ fee = 0.0005
 slippage = 0.0015
 coin = "KRW-XRP"
 currency = "KRW"
-K = 0.0
-ma_interval = 8
+K = 0.5
+ma_interval = 6
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -53,47 +53,40 @@ def get_data():
 def larry(df_, k, ma):
     df = df_
 
-    # 지표 계산
-    df['ma'] = df['close'].rolling(window=ma).mean().shift(1)
-    df['bull'] = df['open'] > df['ma']
+    df['ma5'] = df['close'].rolling(window=ma).mean().shift(1)
     df['range'] = (df['high'] - df['low']) * k
-    df['range_shift1'] = df['range'].shift(1)
     df['target'] = df['open'] + df['range'].shift(1)
-    df['sell_condition'] = np.where(df['bull'] == False, True, False)
-    df['buy_condition'] = np.where((df['high'] > df['target']) & (df['open'] > df['ma']), True, False)
+    df['bull'] = df['open'] > df['ma5']
 
-    df['sell_condition'] = np.where(df['ma'].isna(), False, df['sell_condition'])
-    df['buy_condition'] = np.where(df['ma'].isna(), False, df['buy_condition'])
-    
-    # 코인을 보유한 상태인지 나타냄
-    bought_status = False
-    for i in df.index:
-        if df.at[i, 'buy_condition']:
-            bought_status = True
-        if df.at[i, 'sell_condition']:
-            bought_status = False
-        df.loc[i, 'bought'] = bought_status
-
-    # 코인을 사고 팔때만 수수료가 포함된 수익률 계산
-    df['bought_shift1'] = df['bought'].shift(1)
-    df['bought_shift1'].fillna(False, inplace = True)
-    df['ror'] = np.where(df['bought'] == True, df['close'] / df['target'], 1)
-    df['ror'] = np.where((df['bought'] == True) & (df['bought_shift1'] == False), df['close'] / df['target'] - (fee + slippage), df['ror'])
-    df['ror'] = np.where((df['bought'] == False) & (df['bought_shift1'] == True), 1 - (fee + slippage), df['ror'])
+    df['ror'] = np.where((df['high'] > df['target']) & df['bull'],
+                        df['close'] / df['target'] - (fee + fee + slippage),
+                        1)
 
     df['hpr'] = df['ror'].cumprod()
     df['dd'] = (df['hpr'].cummax() - df['hpr']) / df['hpr'].cummax() * 100
-    ror = df['hpr'][-1]
+    
+    ror = round(df['hpr'][-2], 2)
     mdd = round(df['dd'].max(), 2)
 
-    if k == K:
-        print(df)
+    # if k == K:
+        # print(df)
         # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
         # df.to_excel(file_name)
     
     return [ror, mdd]
 
 data = get_data()
+
+rank = []
+for k in np.arange(0, 1.0, 0.1):
+    for ma in np.arange(2, 10, 1):
+        larry_result = larry(data, k, ma)
+        rank.append([larry_result[0], larry_result[1], round(k, 2), ma])
+
+rank.sort(key=lambda x:x[0])
+
+for i in rank:
+    print(i)
 
 result = larry(data, K, ma_interval)
 
