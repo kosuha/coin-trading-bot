@@ -9,18 +9,19 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 30
+test_length = 100
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = None # "20210201"/None (None으로 하면 현재까지)
-start_money = 100000
+test_end_date = "20210501" # "20210201"/None (None으로 하면 현재까지)
+start_money = 1000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
-slippage = 0.001
+slippage = 0.0015
 coin = "KRW-XRP"
 currency = "KRW"
 K = 0.0
+ma_interval = 8
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -28,7 +29,7 @@ print("------------------------------- Test Start ------------------------------
 def get_data():
     date = test_end_date
     dfs = [ ]
-    length = test_length + 20
+    length = test_length + ma_interval
 
     if length > 200:
         loop_num = length // 200
@@ -49,19 +50,20 @@ def get_data():
     return df
 
 # 레리 윌리엄스의 변동성 돌파 전략, K값에 따른 수익률
-def larry_ror(df_, k):
-    
+def larry(df_, k, ma):
     df = df_
 
     # 지표 계산
-    df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
-    df['ma10'] = df['close'].rolling(window=10).mean().shift(1)
-    df['bull'] = df['open'] > df['ma5']
+    df['ma'] = df['close'].rolling(window=ma).mean().shift(1)
+    df['bull'] = df['open'] > df['ma']
     df['range'] = (df['high'] - df['low']) * k
     df['range_shift1'] = df['range'].shift(1)
     df['target'] = df['open'] + df['range'].shift(1)
     df['sell_condition'] = np.where(df['bull'] == False, True, False)
     df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
+
+    df['sell_condition'] = np.where(df['ma'].isna(), False, df['sell_condition'])
+    df['buy_condition'] = np.where(df['ma'].isna(), False, df['buy_condition'])
     
     # 코인을 보유한 상태인지 나타냄
     bought_status = False
@@ -80,43 +82,32 @@ def larry_ror(df_, k):
     df['ror'] = np.where((df['bought'] == False) & (df['bought_shift1'] == True), 1 - (fee + slippage), df['ror'])
 
     df['hpr'] = df['ror'].cumprod()
+    df['dd'] = (df['hpr'].cummax() - df['hpr']) / df['hpr'].cummax() * 100
     ror = df['hpr'][-1]
+    mdd = round(df['dd'].max(), 2)
 
     if k == K:
         print(df)
         # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
         # df.to_excel(file_name)
     
-    return ror
+    return [ror, mdd]
 
 data = get_data()
 
-# K값에 따른 수익률이 높은 순서대로 리스트에 정렬하여 출력
-ror_list = []
-check_K = []
-for k in np.arange(0.0, 1.0, 0.1):
-    ror = larry_ror(data, k)
-    ror_list.append([round(k, 5), round((ror - 1) * 100, 2)])
-    if k == K:
-        check_K.append([round(k, 5), round((ror - 1) * 100, 2)])
-
-ror_list.sort(key = lambda x:x[1])
-
-for i in ror_list:
-    print("- K: ", i[0], " / 수익률: ", i[1], "%")
+result = larry(data, K, ma_interval)
 
 # 테스트 결과 출력
 print("\n")
 print("Start Money: ", format(round(start_money), ","), currency)
 print("Interval: ", test_data_interval)
 print("테스트 기간: ", test_length)
-print("테스트 시작: ", data.index[20])
+print("테스트 시작: ", data.index[ma_interval])
 print("테스트 종료: ", data.index[len(data)-1])
-print("시작가: ", data.open[20])
+print("시작가: ", data.open[ma_interval])
 print("종료가: ", data.close[len(data)-1])
-print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.open[20]) / data.open[20])*100, 3), "%")
-print("프로그램 최고 수익률: ", ror_list[len(ror_list) - 1][1], "%", "/ K =", ror_list[len(ror_list) - 1][0])
-print("K 값 수익률: ", check_K[0][1], "%", "/ K =", check_K[0][0])
-print("End Money: ", format(round(start_money + ((start_money - 5000) * check_K[0][1] * 0.01)), ","), currency)
+print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.open[ma_interval]) / data.open[ma_interval])*100, 3), "%")
+print(f"프로그램 수익률: {round((result[0] - 1) * 100, 2)} % / MDD = {result[1]} %")
+print("End Money: ", format(round(start_money + ((start_money - 5000) * (result[0] - 1))), ","), currency)
 print("-------------------------------  Test End  -------------------------------")
 
