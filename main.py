@@ -119,7 +119,7 @@ def get_indicator():
     ma = this_interval['ma']
     target = this_interval_open + (last_interval_high - last_interval_low) * k
 
-    return {'k': k, 'ma': ma, 'open_price': this_interval_open, 'target': target}
+    return {'k': k, 'ma': ma, 'open_price': this_interval_open, 'target_price': target}
 
 # 프로그램 실행 시 목표가와 이동평균값 계산
 indicators = get_indicator()
