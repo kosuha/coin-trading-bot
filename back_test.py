@@ -10,11 +10,11 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 1240
+test_length = 365 * 3
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = "20210505" # "20200101"/None (None으로 하면 현재까지)
-start_money = 1000000
+test_end_date = None # "20200101"/None (None으로 하면 현재까지)
+start_money = 2000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
@@ -87,7 +87,7 @@ def larry(df_):
     df['sell_condition'] = np.where(df['bull'] == False, True, False)
     df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
 
-    df.loc[:df.index[20], ['sell_condition', 'buy_condition']] = False
+    df.loc[:df.index[pre_length], ['sell_condition', 'buy_condition']] = False
     
     # 코인을 보유한 상태인지 나타냄
     bought_status = False
@@ -111,7 +111,7 @@ def larry(df_):
     mdd = round(df['dd'].max(), 2)
 
     print(df)
-    file_name = "excels/origin.xlsx"
+    file_name = "excels/auto.xlsx"
     df.to_excel(file_name)
     
     return [ror, mdd]
