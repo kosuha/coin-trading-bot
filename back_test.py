@@ -4,25 +4,26 @@ import pandas as pd
 import config.upbit_token as token
 import numpy as np
 import math
-import k_finder
+# import k_finder
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 30
+test_length = 1240
+pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = "20210504" # "20210201"/None (None으로 하면 현재까지)
+test_end_date = "20210505" # "20200101"/None (None으로 하면 현재까지)
 start_money = 1000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
 slippage = 0.002
-coin = "KRW-BTT"
+coin = "KRW-XRP"
 currency = "KRW"
 K = None
-ma_interval = 5
+ma_interval = None
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -30,7 +31,7 @@ print("------------------------------- Test Start ------------------------------
 def get_data():
     date = test_end_date
     dfs = [ ]
-    length = test_length + 20
+    length = test_length + pre_length
 
     if length > 200:
         loop_num = length // 200
@@ -54,25 +55,31 @@ def get_data():
     return df
 
 # 레리 윌리엄스의 변동성 돌파 전략, K값에 따른 수익률
-def larry(df_, k, ma):
+def larry(df_):
     df = df_
 
-    if k == None:
-        for i in df.index:
-            df.loc[i, 'k'] = k_finder.finder(df.at[i, 'date'])
-            print(df.loc[i, 'date'])
+    # 지표 계산
+    df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
+    df['ma8'] = df['close'].rolling(window=8).mean().shift(1)
+    df['ma10'] = df['close'].rolling(window=10).mean().shift(1)
+    df['ma20'] = df['close'].rolling(window=20).mean().shift(1)
+    df['ma40'] = df['close'].rolling(window=40).mean().shift(1)
+
+    if K == None:
+        df['noise'] = 1 - abs(df['open']-df['close'])/(df['high']-df['low'])
+        df['k'] = np.where((df['open'] > df['ma40']),
+                                0,
+                                df['noise'].rolling(window=20).mean().shift(1))
     else:
-        df['k'] = k
+        df['k'] = 0
 
     if ma_interval == None:
-        for i in df.index:
-            mai = k_finder.finder(df.at[i, 'date'])
-            df['ma'] = df['close'].rolling(window=mai).mean().shift(1)
-            print(df.loc[i, 'date'])
-    else:
+        df['ma'] = np.where((df['open'] > df['ma40']),
+                            df['close'].rolling(window=8).mean().shift(1),
+                            df['close'].rolling(window=5).mean().shift(1))
+    else: 
         df['ma'] = df['close'].rolling(window=ma_interval).mean().shift(1)
-    
-    # 지표 계산
+
     df['bull'] = df['open'] > df['ma']
     df['range'] = (df['high'] - df['low']) * df['k']
     df['range_shift1'] = df['range'].shift(1)
@@ -104,24 +111,24 @@ def larry(df_, k, ma):
     mdd = round(df['dd'].max(), 2)
 
     print(df)
-    # file_name = "excels/larry_{}_{}_k{}.xlsx".format(test_length, test_data_interval, k)
-    # df.to_excel(file_name)
+    file_name = "excels/origin.xlsx"
+    df.to_excel(file_name)
     
     return [ror, mdd]
 
 data = get_data()
-result = larry(data, K, ma_interval)
+result = larry(data)
 
 # 테스트 결과 출력
 print("\n")
 print("Start Money: ", format(round(start_money), ","), currency)
 print("Interval: ", test_data_interval)
 print("테스트 기간: ", test_length)
-print("테스트 시작: ", data.date[20])
+print("테스트 시작: ", data.date[pre_length])
 print("테스트 종료: ", data.date[len(data)-1])
-print("시작가: ", data.open[20])
+print("시작가: ", data.open[pre_length])
 print("종료가: ", data.close[len(data)-1])
-print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.open[20]) / data.open[20])*100, 3), "%")
+print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.open[pre_length]) / data.open[pre_length])*100, 3), "%")
 print(f"프로그램 수익률: {round((result[0] - 1) * 100, 2)} % / MDD = {result[1]} %")
 print("End Money: ", format(round(start_money + ((start_money - 5000) * (result[0] - 1))), ","), currency)
 print("-------------------------------  Test End  -------------------------------")
