@@ -1,16 +1,11 @@
 import pyupbit
 import time
 from datetime import datetime
-# import config.conn as pw
 import config.upbit_token as token
 import market_order_info as market
 import slack_bot
-# import pymysql
-# from sqlalchemy import create_engine
-
-# DB에 연결
-# engine = create_engine(pw.conn)
-# conn = engine.connect()
+import numpy as np
+import pandas as pd
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
@@ -19,26 +14,21 @@ upbit = pyupbit.Upbit(token.access, token.secret)
 coin = "KRW-XRP"
 currency = "KRW"
 interval = "day"
-ma_interval = 8
-k = 0
 
 print("\n")
 print("########### START ###########")
 print("coin : ", coin)
 print("currency : ", currency)
 print("interval : ", interval)
-print("ma interval : ", ma_interval)
-print("K : ", k)
 print("\n")
 
-# 코인 구매
+# 코인 매수
 def buy_coin():
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     current_price = pyupbit.get_current_price(coin)
     if my_money > 5000:
         buy_data = upbit.buy_market_order(coin, my_money - 5000)
-        #buy_data_insert(buy_data)
         message = f"""
         < Buy >
         uuid: {buy_data['uuid']}
@@ -63,15 +53,13 @@ def buy_coin():
         """
         slack_bot.post_message(message)
 
-# 코인 판매
+# 코인 매도
 def sell_coin():
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
-    #prev_my_money = upbit.get_balance(currency)
     current_price = pyupbit.get_current_price(coin)
     if my_coin > 0:
         sell_data = upbit.sell_market_order(coin, my_coin)
-        #sell_data_insert(sell_data, prev_my_money)
         message = f"""
         < Sell >
         uuid: {sell_data['uuid']}
@@ -96,78 +84,45 @@ def sell_coin():
         """
         slack_bot.post_message(message)
 
-# 목표가 설정
-def get_target_price():
-    df = pyupbit.get_ohlcv(coin, interval=interval, count=5)
-    last_interval = df.iloc[-2]
-
-    this_interval_open = last_interval['close']
-    last_interval_high = last_interval['high']
-    last_interval_low = last_interval['low']
-    target = this_interval_open + (last_interval_high - last_interval_low) * k
-
-    return target
-
 # 오늘의 요일을 출력, 0 = 월요일
 def today_weekday():
     return datetime.today().weekday()
 
-# 이동평균값 구하기
-def get_last_interval_ma():
-    df = pyupbit.get_ohlcv(coin, interval=interval, count=10)
-    close = df['close']
-    ma = close.rolling(window=ma_interval).mean()
+# 지표 구하기
+def get_indicator():
+    df = pyupbit.get_ohlcv(coin, interval=interval, count=50)
 
-    return ma[-2]
+    # 지표 계산
+    df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
+    df['ma8'] = df['close'].rolling(window=8).mean().shift(1)
+    df['ma10'] = df['close'].rolling(window=10).mean().shift(1)
+    df['ma20'] = df['close'].rolling(window=20).mean().shift(1)
+    df['ma40'] = df['close'].rolling(window=40).mean().shift(1)
+    df['noise'] = 1 - abs(df['open']-df['close'])/(df['high']-df['low'])
 
-# DB에 거래정보 입력
-'''
-def buy_data_insert(data):
-    fee = float(market.order_info(coin)["bid_fee"])
-    current_price = pyupbit.get_current_price(coin)
-    my_money = upbit.get_balance(currency)
-    my_coin = upbit.get_balance(coin)
-    total = my_money + (current_price * my_coin)
+    df['ma'] = np.where((df['open'] > df['ma40']),
+                            df['close'].rolling(window=8).mean().shift(1),
+                            df['close'].rolling(window=5).mean().shift(1))
 
-    df = pd.DataFrame({
-        "side": data['side'],
-        "price": float(data['price']) / my_coin,
-        "volume": my_coin,
-        "fee": float(data['price']) * fee,
-        "total": total,
-        "money": my_money,
-        "coin": my_coin,
-        "market": data['market'],
-        "date": data['created_at']
-         }, index=[0])
+    df['k'] = np.where((df['open'] > df['ma40']),
+                            0,
+                            df['noise'].rolling(window=20).mean().shift(1))
 
-    df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
+    this_interval = df.iloc[-1]
+    last_interval = df.iloc[-2]
 
-def sell_data_insert(data, prev_my_money):
-    fee = float(market.order_info(coin)["ask_fee"])
-    current_price = pyupbit.get_current_price(coin)
-    my_money = upbit.get_balance(currency)
-    my_coin = upbit.get_balance(coin)
-    total = my_money + (current_price * my_coin)
+    this_interval_open = this_interval['open']
+    last_interval_high = last_interval['high']
+    last_interval_low = last_interval['low']
 
-    df = pd.DataFrame({
-        "side": data['side'],
-        "price": current_price,
-        "volume": float(data['volume']),
-        "fee": (my_money - prev_my_money) * fee,
-        "total": total,
-        "money": my_money,
-        "coin": my_coin,
-        "market": data['market'],
-        "date": data['created_at']
-         }, index=[0])
-    
-    df.to_sql(name='transaction_history', con=engine, if_exists='append', index=False)
-'''
+    k = this_interval['k']
+    ma = this_interval['ma']
+    target = this_interval_open + (last_interval_high - last_interval_low) * k
+
+    return {'k': k, 'ma': ma, 'open_price': this_interval_open, 'target': target}
 
 # 프로그램 실행 시 목표가와 이동평균값 계산
-target_price = get_target_price()
-ma = get_last_interval_ma()
+indicators = get_indicator()
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(coin)
@@ -180,8 +135,6 @@ coin: {coin}
 start price: {start_price}
 currency: {currency}
 interval: {interval}
-ma interval: {ma_interval}
-K: {k}
 date: {time.strftime('%Y/%m/%d %H:%M:%S')}
 total: {format(round(start_money + (start_coin * start_price)), ",")}
 
@@ -192,25 +145,20 @@ while True:
     try:
         current_price = pyupbit.get_current_price(coin)
         now_time = int(time.strftime('%H%M%S'))
-        today_weekday()
 
-        # 매도
-        if 85955 <= now_time < 90000:
-            # k값이 0이면 상승장에 매도를 하지 않음
-            if k == 0 and current_price > ma:
+        if 90000 <= now_time < 90010:
+            indicators = get_indicator()
+
+            if indicators['open_price'] > indicators['ma']:
                 pass
             else:
                 sell_coin()
-
-        # 목표가, 이평선 계산
-        if 90000 <= now_time < 90005:
-            target_price = get_target_price()
-            ma = get_last_interval_ma()
+                print("sell")
 
         # 매수
-        if not (85955 <= now_time < 90000):
-            if (current_price >= target_price) and (current_price < target_price + (target_price * 0.005)) and (current_price > ma):
-                buy_coin()
+        if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
+            buy_coin()
+            print("buy")
 
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
         # print("현재가: ", current_price)
