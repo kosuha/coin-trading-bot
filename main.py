@@ -15,13 +15,6 @@ coin = "KRW-XRP"
 currency = "KRW"
 interval = "day"
 
-print("\n")
-print("########### START ###########")
-print("coin : ", coin)
-print("currency : ", currency)
-print("interval : ", interval)
-print("\n")
-
 # 코인 매수
 def buy_coin():
     my_money = upbit.get_balance(currency)
@@ -121,7 +114,7 @@ def get_indicator():
 
     return {'k': k, 'ma': ma, 'open_price': this_interval_open, 'target_price': target}
 
-# 프로그램 실행 시 목표가와 이동평균값 계산
+# 프로그램 실행 시 지표 계산
 indicators = get_indicator()
 
 start_money = upbit.get_balance(currency)
@@ -129,6 +122,13 @@ start_coin = upbit.get_balance(coin)
 start_price = pyupbit.get_current_price(coin)
 
 # 실행
+print("\n")
+print("########### START ###########")
+print("coin : ", coin)
+print("currency : ", currency)
+print("interval : ", interval)
+print("\n")
+
 start_message = f"""
 <Start Trader> 
 coin: {coin}
@@ -146,19 +146,17 @@ while True:
         current_price = pyupbit.get_current_price(coin)
         now_time = int(time.strftime('%H%M%S'))
 
+        # 지표 업데이트, 매도
         if 90000 <= now_time < 90010:
             indicators = get_indicator()
-
             if indicators['open_price'] > indicators['ma']:
                 pass
             else:
                 sell_coin()
-                print("sell")
 
         # 매수
         if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
             buy_coin()
-            print("buy")
 
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
         # print("현재가: ", current_price)
