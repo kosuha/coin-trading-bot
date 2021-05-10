@@ -158,36 +158,36 @@ total: {format(round(start_money + (start_coin * start_price)), ",")}
 slack_bot.post_message(start_message)
 
 while True:
-    # try:
-    current_price = pyupbit.get_current_price(main_coin)
-    current_price_sub = pyupbit.get_current_price(sub_coin)
-    now_time = int(time.strftime('%H%M%S'))
+    try:
+        current_price = pyupbit.get_current_price(main_coin)
+        current_price_sub = pyupbit.get_current_price(sub_coin)
+        now_time = int(time.strftime('%H%M%S'))
 
-    # 지표 업데이트, 매도
-    if 90000 <= now_time < 90005:
-        sell_coin(sub_coin)
-        indicators = get_indicator()
-        if indicators['open_price'] > indicators['ma']:
-            pass
-        else:
-            sell_coin(main_coin)
+        # 지표 업데이트, 매도
+        if 90000 <= now_time < 90005:
+            sell_coin(sub_coin)
+            indicators = get_indicator()
+            if indicators['open_price'] > indicators['ma']:
+                pass
+            else:
+                sell_coin(main_coin)
 
-    # 매수
-    if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
-        buy_coin(main_coin)
-    
-    if not (90000 <= now_time < 90005):
-        if (indicators['open_price'] <= indicators['ma']) and (current_price_sub > indicators['sub_ma']):
-            buy_coin(sub_coin)
+        # 매수
+        if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
+            buy_coin(main_coin)
 
-        # print(time.strftime('%Y/%m/%d %H:%M:%S'))
-        # print("현재가: ", current_price)
-        # print("매수 목표가: ", target_price)
-        # print()
+        if not (90000 <= now_time < 90005):
+            if (indicators['open_price'] <= indicators['ma']) and (current_price_sub > indicators['sub_ma']):
+                buy_coin(sub_coin)
 
-    # except Exception as e:
-    #     print("########### ERROR ###########")
-    #     print(e)
-    #     slack_bot.post_message(f"<ERROR> \n{e}")
+            # print(time.strftime('%Y/%m/%d %H:%M:%S'))
+            # print("현재가: ", current_price)
+            # print("매수 목표가: ", target_price)
+            # print()
+
+    except Exception as e:
+        print("########### ERROR ###########")
+        print(e)
+        slack_bot.post_message(f"<ERROR> \n{e}")
 
     time.sleep(1)
