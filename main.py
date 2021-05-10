@@ -133,7 +133,9 @@ indicators = get_indicator()
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(main_coin)
+start_coin_sub = upbit.get_balance(sub_coin)
 start_price = pyupbit.get_current_price(main_coin)
+start_price_sub = pyupbit.get_current_price(sub_coin)
 
 # 실행
 print("\n")
@@ -152,7 +154,7 @@ start price: {start_price}
 currency: {currency}
 interval: {interval}
 date: {time.strftime('%Y/%m/%d %H:%M:%S')}
-total: {format(round(start_money + (start_coin * start_price)), ",")}
+total: {format(round(start_money + (start_coin * start_price) + (start_coin_sub * start_price_sub)), ",")}
 
 """
 slack_bot.post_message(start_message)
