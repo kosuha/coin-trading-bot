@@ -4,33 +4,35 @@ import pandas as pd
 import config.upbit_token as token
 import numpy as np
 import math
-# import k_finder
+import doge_rarry
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 365 * 3
+test_length = 1250
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = None # "20200101"/None (None으로 하면 현재까지)
-start_money = 2000000
+test_end_date = "20210510" # "20200101"/None (None으로 하면 현재까지)
+start_money = 3000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
 slippage = 0.002
-coin = "KRW-XRP"
+main_coin = "KRW-XRP"
+sub_coin = "KRW-BTC"
 currency = "KRW"
 K = None
 ma_interval = None
+sub_trading = False
 
 print("------------------------------- Test Start -------------------------------")
 
 # 데이터 분석을 위한 테이터 가져오기
-def get_data():
+def get_data(coin):
     date = test_end_date
-    dfs = [ ]
+    dfs = []
     length = test_length + pre_length
 
     if length > 200:
@@ -51,10 +53,28 @@ def get_data():
     df = pd.concat(dfs).sort_index()
     df = df.reset_index().rename(columns={"index": "date"})
 
-    print(df)
     return df
 
-# 레리 윌리엄스의 변동성 돌파 전략, K값에 따른 수익률
+def get_sub_coin_ror():
+    df = get_data(sub_coin)
+    k = 0.0
+
+    # 지표 계산
+    df['ma'] = df['close'].rolling(window=8).mean().shift(1)
+
+    df['range'] = (df['high'] - df['low']) * k
+    df['target'] = df['open'] + df['range'].shift(1)
+    df['bull'] = df['open'] > df['ma']
+
+    df['ror'] = np.where((df['high'] > df['target']) & df['bull'],
+                        df['close'] / df['target'] - (fee + fee + slippage),
+                        1)
+        
+    df.loc[:df.index[pre_length], ['ror']] = 1
+    
+    return [df['ror'], df['bull']]
+
+# 레리 윌리엄스의 변동성 돌파 전략 적용
 def larry(df_):
     df = df_
 
@@ -71,7 +91,7 @@ def larry(df_):
                                 0,
                                 df['noise'].rolling(window=20).mean().shift(1))
     else:
-        df['k'] = 0
+        df['k'] = K
 
     if ma_interval == None:
         df['ma'] = np.where((df['open'] > df['ma40']),
@@ -105,18 +125,26 @@ def larry(df_):
     df['ror'] = np.where((df['bought'] == True) & (df['bought_shift1'] == False), df['close'] / df['target'] - (fee + slippage), df['ror'])
     df['ror'] = np.where((df['bought'] == False) & (df['bought_shift1'] == True), 1 - (fee + slippage), df['ror'])
 
+    if sub_trading:
+        sub_coins_ror = get_sub_coin_ror()
+
+        df['sub_coin_ror'] = sub_coins_ror[0]
+        df['sub_coin_bull'] = sub_coins_ror[1]
+
+        df['ror'] = np.where((df['bought'] == False) & (df['sub_coin_bull'] == True), df['ror'] * df['sub_coin_ror'], df['ror'])
+                
     df['hpr'] = df['ror'].cumprod()
     df['dd'] = (df['hpr'].cummax() - df['hpr']) / df['hpr'].cummax() * 100
     ror = df['hpr'][len(df) - 1]
     mdd = round(df['dd'].max(), 2)
 
     print(df)
-    file_name = "excels/auto.xlsx"
+    file_name = "excels/doge.xlsx"
     df.to_excel(file_name)
     
     return [ror, mdd]
 
-data = get_data()
+data = get_data(main_coin)
 result = larry(data)
 
 # 테스트 결과 출력

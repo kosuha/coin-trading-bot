@@ -11,12 +11,13 @@ import pandas as pd
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 프로그램 값 설정
-coin = "KRW-XRP"
+main_coin = "KRW-XRP"
+sub_coin = "KRW-BTC"
 currency = "KRW"
 interval = "day"
 
 # 코인 매수
-def buy_coin():
+def buy_coin(coin):
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     current_price = pyupbit.get_current_price(coin)
@@ -47,7 +48,7 @@ def buy_coin():
         slack_bot.post_message(message)
 
 # 코인 매도
-def sell_coin():
+def sell_coin(coin):
     my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(coin)
     current_price = pyupbit.get_current_price(coin)
@@ -83,7 +84,8 @@ def today_weekday():
 
 # 지표 구하기
 def get_indicator():
-    df = pyupbit.get_ohlcv(coin, interval=interval, count=50)
+    df = pyupbit.get_ohlcv(main_coin, interval=interval, count=50)
+    sub_df = pyupbit.get_ohlcv(sub_coin, interval=interval, count=10)
 
     # 지표 계산
     df['ma5'] = df['close'].rolling(window=5).mean().shift(1)
@@ -91,6 +93,9 @@ def get_indicator():
     df['ma10'] = df['close'].rolling(window=10).mean().shift(1)
     df['ma20'] = df['close'].rolling(window=20).mean().shift(1)
     df['ma40'] = df['close'].rolling(window=40).mean().shift(1)
+
+    sub_df['ma8'] = sub_df['close'].rolling(window=8).mean().shift(1)
+
     df['noise'] = 1 - abs(df['open']-df['close'])/(df['high']-df['low'])
 
     df['ma'] = np.where((df['open'] > df['ma40']),
@@ -112,26 +117,36 @@ def get_indicator():
     ma = this_interval['ma']
     target = this_interval_open + (last_interval_high - last_interval_low) * k
 
-    return {'k': k, 'ma': ma, 'open_price': this_interval_open, 'target_price': target}
+    result = {
+        'k': k,
+        'ma': ma,
+        'open_price': this_interval_open, 
+        'target_price': target,
+        'sub_ma': sub_df['ma8']
+        }
+
+    return result
 
 # 프로그램 실행 시 지표 계산
 indicators = get_indicator()
 
 start_money = upbit.get_balance(currency)
-start_coin = upbit.get_balance(coin)
-start_price = pyupbit.get_current_price(coin)
+start_coin = upbit.get_balance(main_coin)
+start_price = pyupbit.get_current_price(main_coin)
 
 # 실행
 print("\n")
 print("########### START ###########")
-print("coin : ", coin)
+print("main coin : ", main_coin)
+print("sub coin : ", sub_coin)
 print("currency : ", currency)
 print("interval : ", interval)
 print("\n")
 
 start_message = f"""
 <Start Trader> 
-coin: {coin}
+main coin: {main_coin}
+sub coin: {sub_coin}
 start price: {start_price}
 currency: {currency}
 interval: {interval}
@@ -143,20 +158,26 @@ slack_bot.post_message(start_message)
 
 while True:
     try:
-        current_price = pyupbit.get_current_price(coin)
+        current_price = pyupbit.get_current_price(main_coin)
+        current_price_sub = pyupbit.get_current_price(sub_coin)
         now_time = int(time.strftime('%H%M%S'))
 
         # 지표 업데이트, 매도
-        if 90000 <= now_time < 90010:
+        if 90000 <= now_time < 90005:
+            sell_coin(sub_coin)
             indicators = get_indicator()
             if indicators['open_price'] > indicators['ma']:
                 pass
             else:
-                sell_coin()
+                sell_coin(main_coin)
 
         # 매수
         if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
-            buy_coin()
+            buy_coin(main_coin)
+        
+        if not (90000 <= now_time < 90005):
+            if indicators['open_price'] <= indicators['ma'] and current_price_sub > indicators['sub_ma']:
+                buy_coin(sub_coin)
 
         # print(time.strftime('%Y/%m/%d %H:%M:%S'))
         # print("현재가: ", current_price)
