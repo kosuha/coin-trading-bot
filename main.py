@@ -15,6 +15,7 @@ main_coin = "KRW-XRP"
 sub_coin = "KRW-BTC"
 currency = "KRW"
 interval = "day"
+sub_trading = False
 
 # 코인 매수
 def buy_coin(coin):
@@ -142,6 +143,7 @@ print("\n")
 print("########### START ###########")
 print("main coin : ", main_coin)
 print("sub coin : ", sub_coin)
+print("sub trading : ", sub_trading)
 print("currency : ", currency)
 print("interval : ", interval)
 print("\n")
@@ -150,6 +152,7 @@ start_message = f"""
 <Start Trader> 
 main coin: {main_coin}
 sub coin: {sub_coin}
+sub trading: {sub_trading}
 start price: {start_price}
 currency: {currency}
 interval: {interval}
@@ -167,7 +170,9 @@ while True:
 
         # 지표 업데이트, 매도
         if 90000 <= now_time < 90005:
-            sell_coin(sub_coin)
+            if sub_trading:
+                sell_coin(sub_coin)
+
             indicators = get_indicator()
             if indicators['open_price'] > indicators['ma']:
                 pass
@@ -178,9 +183,10 @@ while True:
         if (current_price > indicators['target_price']) and (indicators['open_price'] > indicators['ma']):
             buy_coin(main_coin)
 
-        if not (90000 <= now_time < 90005):
-            if (indicators['open_price'] <= indicators['ma']) and (current_price_sub > indicators['sub_ma']):
-                buy_coin(sub_coin)
+        if sub_trading:
+            if not (90000 <= now_time < 90005):
+                if (indicators['open_price'] <= indicators['ma']) and (current_price_sub > indicators['sub_ma']):
+                    buy_coin(sub_coin)
 
             # print(time.strftime('%Y/%m/%d %H:%M:%S'))
             # print("현재가: ", current_price)
