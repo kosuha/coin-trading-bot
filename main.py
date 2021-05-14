@@ -131,6 +131,7 @@ def get_indicator():
 
 # 프로그램 실행 시 지표 계산
 indicators = get_indicator()
+daily_checker = False
 
 start_money = upbit.get_balance(currency)
 start_coin = upbit.get_balance(main_coin)
@@ -187,6 +188,22 @@ while True:
             if not (90000 <= now_time < 90005):
                 if (indicators['open_price'] <= indicators['ma']) and (current_price_sub > indicators['sub_ma']):
                     buy_coin(sub_coin)
+
+        if 90100 <= now_time < 90105:
+            now_money = upbit.get_balance(currency)
+            now_coin = upbit.get_balance(main_coin)
+
+            if daily_checker == False:
+                daily_message = f"""
+                <{time.strftime('%Y/%m/%d %H:%M:%S')}>
+                total: {format(round(now_money + (now_coin * current_price)), ",")}
+                return: {round((round(now_money + (now_coin * current_price)) / 3000000 * 100) - 100, 2)} %
+                """
+                slack_bot.post_message(daily_message)
+                daily_checker = True
+        else:
+            daily_checker = False
+            
 
             # print(time.strftime('%Y/%m/%d %H:%M:%S'))
             # print("현재가: ", current_price)
