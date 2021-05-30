@@ -1,5 +1,7 @@
 # coin-trading-bot
 
+- 암호화폐 자동매매, 백테스팅 프로그램  
+
 ### 참조
 https://wikidocs.net/book/1665  
 https://github.com/sharebook-kr/pyupbit  
