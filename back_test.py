@@ -9,16 +9,26 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
+<<<<<<< HEAD
 test_length = 365 * 3
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # "20200101"/None (None으로 하면 현재까지)
 start_money = 1000000
+=======
+test_length = 13
+pre_length = 40
+test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
+test_end_date = None # "20200101"/None (None으로 하면 현재까지)
+start_money = 3000000
+>>>>>>> c0c50ac7774283f3f9886539902779d6ddaac5c7
 test_money = start_money - 5000
-bougth_price = 0;
-test_coin = 0.0
 fee = 0.0005
+<<<<<<< HEAD
 slippage = 0.005
+=======
+slippage = 0.004
+>>>>>>> c0c50ac7774283f3f9886539902779d6ddaac5c7
 main_coin = "KRW-XRP"
 sub_coin = "KRW-BTC"
 currency = "KRW"
@@ -100,13 +110,13 @@ def larry(df_):
         df['ma'] = df['close'].rolling(window=ma_interval).mean().shift(1)
 
     df['bull'] = df['open'] > df['ma']
-    df['range'] = (df['high'] - df['low']) * df['k']
+    df['range'] = df['high'] - df['low']
     df['range_shift1'] = df['range'].shift(1)
-    df['target'] = df['open'] + df['range'].shift(1)
+    df['target'] = df['open'] + (df['range_shift1'] * df['k'])
     df['sell_condition'] = np.where(df['bull'] == False, True, False)
     df['buy_condition'] = np.where((df['high'] > df['target']) & df['bull'], True, False)
 
-    df.loc[:df.index[pre_length], ['sell_condition', 'buy_condition']] = False
+    df.loc[:df.index[pre_length - 1], ['sell_condition', 'buy_condition']] = False
     
     # 코인을 보유한 상태인지 나타냄
     bought_status = False
