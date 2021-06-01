@@ -4,22 +4,21 @@ import pandas as pd
 import config.upbit_token as token
 import numpy as np
 import math
-import doge_rarry
 
 # 업비트에 연결
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 1250
+test_length = 365 * 3
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = "20210510" # "20200101"/None (None으로 하면 현재까지)
-start_money = 3000000
+test_end_date = None # "20200101"/None (None으로 하면 현재까지)
+start_money = 1000000
 test_money = start_money - 5000
 bougth_price = 0;
 test_coin = 0.0
 fee = 0.0005
-slippage = 0.002
+slippage = 0.005
 main_coin = "KRW-XRP"
 sub_coin = "KRW-BTC"
 currency = "KRW"
@@ -124,14 +123,6 @@ def larry(df_):
     df['ror'] = np.where(df['bought'] == True, df['close'] / df['open'], 1)
     df['ror'] = np.where((df['bought'] == True) & (df['bought_shift1'] == False), df['close'] / df['target'] - (fee + slippage), df['ror'])
     df['ror'] = np.where((df['bought'] == False) & (df['bought_shift1'] == True), 1 - (fee + slippage), df['ror'])
-
-    if sub_trading:
-        sub_coins_ror = get_sub_coin_ror()
-
-        df['sub_coin_ror'] = sub_coins_ror[0]
-        df['sub_coin_bull'] = sub_coins_ror[1]
-
-        df['ror'] = np.where((df['bought'] == False) & (df['sub_coin_bull'] == True), df['ror'] * df['sub_coin_ror'], df['ror'])
                 
     df['hpr'] = df['ror'].cumprod()
     df['dd'] = (df['hpr'].cummax() - df['hpr']) / df['hpr'].cummax() * 100

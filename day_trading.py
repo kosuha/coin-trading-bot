@@ -135,7 +135,7 @@ while True:
         now_second = int(time.strftime('%S'))
 
         # 매도, 지표 계산
-        if now_minute == 0 or now_minute % 5 == 0:
+        if now_minute == 0 or now_minute % 30 == 0:
             if 0 <= now_second < 5:
                 sell_coin()
                 indicators = get_indicator()
