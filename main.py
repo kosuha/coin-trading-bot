@@ -149,12 +149,7 @@ while True:
                 daily_checker = True
         else:
             daily_checker = False
-            
 
-            # print(time.strftime('%Y/%m/%d %H:%M:%S'))
-            # print("현재가: ", current_price)
-            # print("매수 목표가: ", target_price)
-            # print()
 
     except Exception as e:
         print("########### ERROR ###########")
