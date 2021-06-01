@@ -91,7 +91,7 @@ def get_indicator(coin):
     return result
 
 # 프로그램 실행 시 지표 계산
-indicators = get_indicator()
+indicators = get_indicator(main_coin)
 daily_checker = False
 
 start_money = upbit.get_balance(currency)
@@ -125,7 +125,7 @@ while True:
 
         # 지표 업데이트, 매도
         if 90000 <= now_time < 90005:
-            indicators = get_indicator()
+            indicators = get_indicator(main_coin)
             if indicators['open_price'] > indicators['ma']:
                 pass
             else:
