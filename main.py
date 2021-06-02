@@ -143,7 +143,7 @@ while True:
                 daily_message = f"""
                 <{time.strftime('%Y/%m/%d %H:%M:%S')}>
                 total: {format(round(now_money + (now_coin * current_price)), ",")}
-                return: {round((round(now_money + (now_coin * current_price)) / 1000000 * 100) - 100, 2)} %
+                return: {round((round(now_money + (now_coin * current_price)) / 2000000 * 100) - 100, 2)} %
                 """
                 slack_bot.post_message(daily_message)
                 daily_checker = True
