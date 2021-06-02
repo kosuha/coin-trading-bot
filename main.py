@@ -79,13 +79,15 @@ def get_indicator(coin):
 
     k = this_interval['k']
     ma = this_interval['ma']
+    ma40 = this_interval['ma40']
     target = this_interval_open + (last_interval_high - last_interval_low) * k
 
     result = {
         'k': k,
         'ma': ma,
         'open_price': this_interval_open, 
-        'target_price': target
+        'target_price': target,
+        'ma40': ma40
         }
 
     return result
@@ -126,7 +128,7 @@ while True:
         # 지표 업데이트, 매도
         if 90000 <= now_time < 90005:
             indicators = get_indicator(main_coin)
-            if indicators['open_price'] > indicators['ma']:
+            if indicators['open_price'] > indicators['ma'] and indicators['ma40'] <= indicators['open_price']:
                 pass
             else:
                 sell_coin(main_coin)
@@ -149,7 +151,6 @@ while True:
                 daily_checker = True
         else:
             daily_checker = False
-
 
     except Exception as e:
         print("########### ERROR ###########")
