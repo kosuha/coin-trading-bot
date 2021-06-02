@@ -128,7 +128,7 @@ while True:
         # 지표 업데이트, 매도
         if 90000 <= now_time < 90005:
             indicators = get_indicator(main_coin)
-            if indicators['open_price'] > indicators['ma'] and indicators['ma40'] <= indicators['open_price']:
+            if indicators['open_price'] > indicators['ma']:
                 pass
             else:
                 sell_coin(main_coin)
