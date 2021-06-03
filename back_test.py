@@ -9,26 +9,14 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-<<<<<<< HEAD
 test_length = 365 * 3
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # "20200101"/None (None으로 하면 현재까지)
 start_money = 1000000
-=======
-test_length = 13
-pre_length = 40
-test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
-test_end_date = None # "20200101"/None (None으로 하면 현재까지)
-start_money = 3000000
->>>>>>> c0c50ac7774283f3f9886539902779d6ddaac5c7
 test_money = start_money - 5000
 fee = 0.0005
-<<<<<<< HEAD
 slippage = 0.005
-=======
-slippage = 0.004
->>>>>>> c0c50ac7774283f3f9886539902779d6ddaac5c7
 main_coin = "KRW-XRP"
 sub_coin = "KRW-BTC"
 currency = "KRW"
