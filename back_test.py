@@ -9,20 +9,19 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 365 * 3
+test_length = 365
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # "20200101"/None (None으로 하면 현재까지)
 start_money = 1000000
 test_money = start_money - 5000
 fee = 0.0005
-slippage = 0.005
+slippage = 0.004
 main_coin = "KRW-XRP"
-sub_coin = "KRW-BTC"
 currency = "KRW"
 K = None
 ma_interval = None
-sub_trading = False
+leverage = 1
 
 print("------------------------------- Test Start -------------------------------")
 
@@ -51,25 +50,6 @@ def get_data(coin):
     df = df.reset_index().rename(columns={"index": "date"})
 
     return df
-
-def get_sub_coin_ror():
-    df = get_data(sub_coin)
-    k = 0.0
-
-    # 지표 계산
-    df['ma'] = df['close'].rolling(window=8).mean().shift(1)
-
-    df['range'] = (df['high'] - df['low']) * k
-    df['target'] = df['open'] + df['range'].shift(1)
-    df['bull'] = df['open'] > df['ma']
-
-    df['ror'] = np.where((df['high'] > df['target']) & df['bull'],
-                        df['close'] / df['target'] - (fee + fee + slippage),
-                        1)
-        
-    df.loc[:df.index[pre_length], ['ror']] = 1
-    
-    return [df['ror'], df['bull']]
 
 # 레리 윌리엄스의 변동성 돌파 전략 적용
 def larry(df_):
@@ -118,8 +98,8 @@ def larry(df_):
     # 코인을 사고 팔때만 수수료가 포함된 수익률 계산
     df['bought_shift1'] = df['bought'].shift(1)
     df['bought_shift1'].fillna(False, inplace = True)
-    df['ror'] = np.where(df['bought'] == True, df['close'] / df['open'], 1)
-    df['ror'] = np.where((df['bought'] == True) & (df['bought_shift1'] == False), df['close'] / df['target'] - (fee + slippage), df['ror'])
+    df['ror'] = np.where(df['bought'] == True, 1 + ((df['close'] / df['open']) - 1) * leverage, 1)
+    df['ror'] = np.where((df['bought'] == True) & (df['bought_shift1'] == False), 1 + ((df['close'] / df['target']) - 1) * leverage - (fee + slippage), df['ror'])
     df['ror'] = np.where((df['bought'] == False) & (df['bought_shift1'] == True), 1 - (fee + slippage), df['ror'])
                 
     df['hpr'] = df['ror'].cumprod()
@@ -127,9 +107,9 @@ def larry(df_):
     ror = df['hpr'][len(df) - 1]
     mdd = round(df['dd'].max(), 2)
 
-    print(df)
-    file_name = "excels/doge.xlsx"
-    df.to_excel(file_name)
+    # print(df)
+    # file_name = "excels/doge.xlsx"
+    # df.to_excel(file_name)
     
     return [ror, mdd]
 
