@@ -9,15 +9,15 @@ import math
 upbit = pyupbit.Upbit(token.access, token.secret)
 
 # 테스트 설정 
-test_length = 365
+test_length = 183
 pre_length = 40
 test_data_interval = "day" # day/minute1/minute3/minute5/minute10/minute15/minute30/minute60/minute240/week/month
 test_end_date = None # "20200101"/None (None으로 하면 현재까지)
-start_money = 1000000
+start_money = 3000000
 test_money = start_money - 5000
 fee = 0.0005
 slippage = 0.004
-main_coin = "KRW-XRP"
+main_coin = "KRW-DOGE"
 currency = "KRW"
 K = None
 ma_interval = None
@@ -107,9 +107,9 @@ def larry(df_):
     ror = df['hpr'][len(df) - 1]
     mdd = round(df['dd'].max(), 2)
 
-    # print(df)
-    # file_name = "excels/doge.xlsx"
-    # df.to_excel(file_name)
+    print(df)
+    file_name = "excels/doge.xlsx"
+    df.to_excel(file_name)
     
     return [ror, mdd]
 
@@ -126,7 +126,7 @@ print("테스트 종료: ", data.date[len(data)-1])
 print("시작가: ", data.open[pre_length])
 print("종료가: ", data.close[len(data)-1])
 print("존버 시 수익률: ", round(((data.close[len(data)-1] - data.open[pre_length]) / data.open[pre_length])*100, 3), "%")
-print(f"프로그램 수익률: {round((result[0] - 1) * 100, 2)} % / MDD = {result[1]} %")
+print(f"프로그램 수익률: {round((result[0] - 1) * 100, 2)} % / MDD = {result[1]} % / 일복리수익률 = {round((result[0] ** (1 / test_length) - 1) * 100, 2)} %")
 print("End Money: ", format(round(start_money + ((start_money - 5000) * (result[0] - 1))), ","), currency)
 print("-------------------------------  Test End  -------------------------------")
 
