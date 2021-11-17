@@ -36,32 +36,30 @@ def get_total(tickers):
 def buy_coin(ticker, n):
     my_money = upbit.get_balance(currency)
     amount = my_money / n
-    my_coin = upbit.get_balance(ticker)
     current_price = pyupbit.get_current_price(ticker)
-    if my_money > 5000 and my_coin == 0:
-        buy_data = upbit.buy_market_order(ticker, amount - (amount * 0.0005))
-        message = f"""
-        < Buy >
-        ticker: {ticker}
-        current price: {current_price}
+    
+    buy_data = upbit.buy_market_order(ticker, amount - (amount * 0.0005))
+    message = f"""
+    < Buy >
+    ticker: {ticker}
+    current price: {current_price}
 
-        """
-        slack_bot.post_message(message)
+    """
+    slack_bot.post_message(message)
 
 # 코인 매도
 def sell_coin(ticker):
-    my_money = upbit.get_balance(currency)
     my_coin = upbit.get_balance(ticker)
     current_price = pyupbit.get_current_price(ticker)
-    if my_coin > 0:
-        sell_data = upbit.sell_market_order(ticker, my_coin)
-        message = f"""
-        < Sell >
-        ticker: {ticker}
-        current price: {current_price}
+    
+    sell_data = upbit.sell_market_order(ticker, my_coin)
+    message = f"""
+    < Sell >
+    ticker: {ticker}
+    current price: {current_price}
 
-        """
-        slack_bot.post_message(message)
+    """
+    slack_bot.post_message(message)
 
 # 지표 구하기
 def get_indicator(coin):
@@ -123,7 +121,7 @@ def trader():
             for ticker in tickers_to_buy:
                 n = len(tickers_to_buy)
                 indicators = get_indicator(ticker)
-                if indicators['open_price'] > indicators['ma']:
+                if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma40']):
                     buy_coin(ticker, n)
 
             # 1시간 마다 슬랙
