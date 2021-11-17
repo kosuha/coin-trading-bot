@@ -21,7 +21,7 @@ def get_empty_tickers(tickers):
 
     return empty_tickers
 
-def get_total(tickers):
+def get_total(tickers, return_type):
     total = 0
     my_money = upbit.get_balance(currency)
     total = total + my_money
@@ -29,6 +29,9 @@ def get_total(tickers):
         current_price = pyupbit.get_current_price(ticker)
         hold_ticker = upbit.get_balance(ticker)
         total = total + (hold_ticker * current_price)
+
+    if return_type == "int":
+        return round(total)
 
     return format(round(total), ",")
 
@@ -85,7 +88,7 @@ def get_indicator(coin):
 
 def trader():
     tickers = ["KRW-BTC", "KRW-ETH", "KRW-XRP"]
-    start_total = (get_total(tickers),)
+    start_total = (get_total(tickers, "int"),)
 
     # 실행
     print("\n")
@@ -129,7 +132,7 @@ def trader():
                 daily_message = f"""
                 <{time.strftime('%Y/%m/%d %H:%M:%S')}>
                 total: {get_total(tickers)} KRW
-                return: {round((get_total(tickers) / start_total[0] * 100) - 100, 2)} %
+                return: {format(round((get_total(tickers, "int") / start_total[0] * 100) - 100, 2), ",")} %
                 """
                 slack_bot.post_message(daily_message)
                 time.sleep(11)
