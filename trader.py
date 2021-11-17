@@ -40,15 +40,15 @@ def buy_coin(ticker, n):
     my_money = upbit.get_balance(currency)
     amount = my_money / n
     current_price = pyupbit.get_current_price(ticker)
-    
-    buy_data = upbit.buy_market_order(ticker, amount - (amount * 0.0005))
-    message = f"""
-    < Buy >
-    ticker: {ticker}
-    current price: {current_price}
+    if amount > 5000:
+        buy_data = upbit.buy_market_order(ticker, amount - (amount * 0.0005))
+        message = f"""
+        < Buy >
+        ticker: {ticker}
+        current price: {current_price}
 
-    """
-    slack_bot.post_message(message)
+        """
+        slack_bot.post_message(message)
 
 # 코인 매도
 def sell_coin(ticker):
