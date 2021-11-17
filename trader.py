@@ -102,7 +102,7 @@ def trader():
     <Start Trader> 
     tickers: {tickers}
     date: {time.strftime('%Y/%m/%d %H:%M:%S')}
-    total: {get_total(tickers)} KRW
+    total: {get_total(tickers, "str")} KRW
 
     """
     slack_bot.post_message(start_message)
@@ -131,7 +131,7 @@ def trader():
             if now.minute == 0 and (40 <= now.second < 50):
                 daily_message = f"""
                 <{time.strftime('%Y/%m/%d %H:%M:%S')}>
-                total: {get_total(tickers)} KRW
+                total: {get_total(tickers, "str")} KRW
                 return: {format(round((get_total(tickers, "int") / start_total[0] * 100) - 100, 2), ",")} %
                 """
                 slack_bot.post_message(daily_message)
