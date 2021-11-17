@@ -112,20 +112,20 @@ def trader():
             now = datetime.now()
 
             # 지표 업데이트, 매도
-            if (now.hour == 9) and (now.minute == 0) and (15 <= now.second < 30):
+            if (now.hour == 9) and (now.minute == 0) and (20 <= now.second < 30):
                 for ticker in tickers:
                     indicators = get_indicator(ticker)
                     if (indicators['open_price'] < indicators['ma']) or (indicators['open_price'] < indicators['ma40']):
                         sell_coin(ticker)
 
             # 매수
-            tickers_to_buy = get_empty_tickers(tickers)
-
-            for ticker in tickers_to_buy:
-                n = len(tickers_to_buy)
-                indicators = get_indicator(ticker)
-                if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma40']):
-                    buy_coin(ticker, n)
+            if (now.hour == 9) and (now.minute == 0) and (30 <= now.second < 40):
+                tickers_to_buy = get_empty_tickers(tickers)
+                for ticker in tickers_to_buy:
+                    n = len(tickers_to_buy)
+                    indicators = get_indicator(ticker)
+                    if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma40']):
+                        buy_coin(ticker, n)
 
             # 1시간 마다 슬랙
             if now.minute == 0 and (40 <= now.second < 50):
