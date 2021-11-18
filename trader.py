@@ -55,14 +55,15 @@ def sell_coin(ticker):
     my_coin = upbit.get_balance(ticker)
     current_price = pyupbit.get_current_price(ticker)
     
-    sell_data = upbit.sell_market_order(ticker, my_coin)
-    message = f"""
-    < Sell >
-    ticker: {ticker}
-    current price: {current_price}
+    if my_coin > 0:
+        sell_data = upbit.sell_market_order(ticker, my_coin)
+        message = f"""
+        < Sell >
+        ticker: {ticker}
+        current price: {current_price}
 
-    """
-    slack_bot.post_message(message)
+        """
+        slack_bot.post_message(message)
 
 # 지표 구하기
 def get_indicator(coin):
