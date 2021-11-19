@@ -70,19 +70,19 @@ def get_indicator(coin):
     df = pyupbit.get_ohlcv(coin, interval=interval, count=50)
 
     # 지표 계산
-    df['ma40'] = df['close'].rolling(window=40).mean().shift(1)
+    df['ma50'] = df['close'].rolling(window=50).mean().shift(1)
     df['ma'] = df['close'].rolling(window=14).mean().shift(1)
     df['k'] = 0
 
     this_interval = df.iloc[-1]
     this_interval_open = this_interval['open']
     ma = this_interval['ma']
-    ma40 = this_interval['ma40']
+    ma50 = this_interval['ma50']
 
     result = {
         'ma': ma,
         'open_price': this_interval_open, 
-        'ma40': ma40
+        'ma50': ma50
         }
 
     return result
@@ -116,7 +116,7 @@ def trader():
             if (now.hour == 9) and (now.minute == 0) and (20 <= now.second < 30):
                 for ticker in tickers:
                     indicators = get_indicator(ticker)
-                    if (indicators['open_price'] < indicators['ma']) or (indicators['open_price'] < indicators['ma40']):
+                    if (indicators['open_price'] < indicators['ma']) or (indicators['open_price'] < indicators['ma50']):
                         sell_coin(ticker)
 
             # 매수
@@ -125,7 +125,7 @@ def trader():
                 for ticker in tickers_to_buy:
                     n = len(tickers_to_buy)
                     indicators = get_indicator(ticker)
-                    if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma40']):
+                    if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma50']):
                         buy_coin(ticker, n)
 
             # 1시간 마다 슬랙
