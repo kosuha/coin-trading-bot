@@ -67,29 +67,42 @@ def sell_coin(ticker):
 
 # 지표 구하기
 def get_indicator(coin):
-    df = pyupbit.get_ohlcv(coin, interval=interval, count=50)
+    df = pyupbit.get_ohlcv(coin, interval=interval, count=41)
 
     # 지표 계산
-    df['ma50'] = df['close'].rolling(window=50).mean().shift(1)
-    df['ma'] = df['close'].rolling(window=14).mean().shift(1)
-    df['k'] = 0
+    df['ma20'] = df['close'].rolling(window=20).mean().shift(1)
+    df['ma40'] = df['close'].rolling(window=40).mean().shift(1)
+
+    df['noise'] = 1 - abs(df['open']-df['close'])/(df['high']-df['low'])
+    df['k'] = np.where((df['open'] > df['ma40']),
+                            0,
+                            df['noise'].rolling(window=10).mean().shift(1))
+
+    df['ma'] = np.where((df['open'] > df['ma40']),
+                        df['close'].rolling(window=8).mean().shift(1),
+                        df['close'].rolling(window=5).mean().shift(1))
+
+    df['bull'] = df['open'] > df['ma']
 
     this_interval = df.iloc[-1]
-    this_interval_open = this_interval['open']
-    ma = this_interval['ma']
-    ma50 = this_interval['ma50']
+    last_interval = df.iloc[-2]
+
+    bull = this_interval['bull']
+    target = this_interval['open'] + (last_interval['high'] - last_interval['low']) * this_interval['k']
+    buy = (this_interval['high'] > this_interval['target']) and (this_interval['open'] > this_interval['ma20'])
 
     result = {
-        'ma': ma,
-        'open_price': this_interval_open, 
-        'ma50': ma50
+        'bull': bull,
+        'target': target,
+        'buy': buy
         }
 
     return result
 
 def trader():
-    tickers = ["KRW-BTC", "KRW-ETH", "KRW-XRP"]
+    tickers = ["KRW-BTC", "KRW-ETH", "KRW-BORA", "KRW-PLA", "KRW-SAND"]
     start_total = (get_total(tickers, "int"),)
+    not_today = True
 
     # 실행
     print("\n")
@@ -111,25 +124,29 @@ def trader():
     while True:
         try:
             now = datetime.now()
+            if (now.hour == 8) and (now.minute == 59):
+                not_today = False
+
+            if not_today:
+                continue
 
             # 지표 업데이트, 매도
             if (now.hour == 9) and (now.minute == 0) and (20 <= now.second < 30):
                 for ticker in tickers:
                     indicators = get_indicator(ticker)
-                    if (indicators['open_price'] < indicators['ma']) or (indicators['open_price'] < indicators['ma50']):
+                    if not indicators['bull']:
                         sell_coin(ticker)
 
             # 매수
-            if (now.hour == 9) and (now.minute == 0) and (30 <= now.second < 40):
-                tickers_to_buy = get_empty_tickers(tickers)
-                for ticker in tickers_to_buy:
-                    n = len(tickers_to_buy)
-                    indicators = get_indicator(ticker)
-                    if (indicators['open_price'] > indicators['ma']) and (indicators['open_price'] >= indicators['ma50']):
-                        buy_coin(ticker, n)
+            tickers_to_buy = get_empty_tickers(tickers)
+            for ticker in tickers_to_buy:
+                n = len(tickers_to_buy)
+                indicators = get_indicator(ticker)
+                if indicators['bull'] and indicators['buy']:
+                    buy_coin(ticker, n)
 
-            # 1시간 마다 슬랙
-            if now.minute == 0 and (40 <= now.second < 50):
+            # 슬랙
+            if (now.hour == 9) and (now.minute == 0) and (40 <= now.second < 50):
                 daily_message = f"""
                 <{time.strftime('%Y/%m/%d %H:%M:%S')}>
                 total: {get_total(tickers, "str")} KRW
@@ -141,7 +158,8 @@ def trader():
         except Exception as e:
             print("########### ERROR ###########")
             print(e)
-            slack_bot.post_message(f"<ERROR> \n{e}")
+            now = datetime.now()
+            slack_bot.post_message(f"<ERROR {time.strftime('%Y/%m/%d %H:%M:%S')}> \n{e}")
 
         time.sleep(1)
 
