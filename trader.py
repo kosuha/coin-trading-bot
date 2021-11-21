@@ -82,19 +82,23 @@ def get_indicator(coin):
                         df['close'].rolling(window=8).mean().shift(1),
                         df['close'].rolling(window=5).mean().shift(1))
 
-    df['bull'] = df['open'] > df['ma']
-
     this_interval = df.iloc[-1]
     last_interval = df.iloc[-2]
 
-    bull = this_interval['bull']
-    target = this_interval['open'] + (last_interval['high'] - last_interval['low']) * this_interval['k']
-    buy = (this_interval['high'] > this_interval['target']) and (this_interval['open'] > this_interval['ma20'])
+    this_interval_open = this_interval['open']
+    last_interval_high = last_interval['high']
+    last_interval_low = last_interval['low']
+
+    k = this_interval['k']
+    ma20 = this_interval['ma20']
+    bull = this_interval['open'] > this_interval['ma']
+    target = this_interval_open + (last_interval_high - last_interval_low) * k
 
     result = {
         'bull': bull,
+        'open': this_interval_open, 
         'target': target,
-        'buy': buy
+        'ma20': ma20
         }
 
     return result
@@ -102,7 +106,7 @@ def get_indicator(coin):
 def trader():
     tickers = ["KRW-BTC", "KRW-ETH", "KRW-BORA", "KRW-PLA", "KRW-SAND"]
     start_total = (get_total(tickers, "int"),)
-    not_today = True
+    not_today = False
 
     # 실행
     print("\n")
@@ -142,7 +146,8 @@ def trader():
             for ticker in tickers_to_buy:
                 n = len(tickers_to_buy)
                 indicators = get_indicator(ticker)
-                if indicators['bull'] and indicators['buy']:
+                current_price = pyupbit.get_current_price(ticker)
+                if indicators['bull'] and current_price > indicators['target'] and indicators['open'] > indicators['ma20']:
                     buy_coin(ticker, n)
 
             # 슬랙
