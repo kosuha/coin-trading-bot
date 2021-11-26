@@ -104,7 +104,7 @@ def get_indicator(coin):
     return result
 
 def trader():
-    tickers = ["KRW-BTC", "KRW-ETH", "KRW-BORA", "KRW-PLA", "KRW-SAND"]
+    tickers = ["KRW-BTC"]
     start_total = (get_total(tickers, "int"),)
     not_today = False
 
