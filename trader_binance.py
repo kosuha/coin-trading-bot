@@ -248,12 +248,14 @@ def stop(ticker, position, entry_price, stoploss, stopprofit, start_balance):
     return position
 
 def main():
-    print("start")
     ticker = "ETH/USDT"
     start_balance = 100
     reset_bool = False
     position = ""
     entry_price = 0
+    total = total_balance()
+
+    slack_bot.post_message(f"start binance trading / {round((total / start_balance * 100) - 100, 2)} %")
 
     while True:
         try:
