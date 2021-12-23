@@ -170,7 +170,7 @@ def trade(ticker, entry_price, position, start_balance):
             total = total_balance()
             response = binance.create_market_buy_order(symbol=ticker, amount=amount * leverage_long)
             entry_price = current
-            slack_bot.post_message(f"none => short / {round((total / start_balance * 100) - 100, 2)} %")
+            slack_bot.post_message(f"none => long / {round((total / start_balance * 100) - 100, 2)} %")
             
         elif position == 'short':
             # 매도
