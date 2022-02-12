@@ -174,7 +174,7 @@ def main():
                 reset_bool = False
         
         except Exception as e:
-            slack_bot.post_message(f"{e}")
+            slack_bot.post_message(f"binance! {e}")
             print(e)
 
         time.sleep(1)
