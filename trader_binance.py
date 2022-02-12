@@ -145,10 +145,10 @@ def main():
                 position_amount = get_position_amount(ticker)
                 price = current_price(ticker)
                 usdt = usdt_balance()
-                amount = get_amount(usdt, price, entry_count)
-                if amount < 5.0:
+                if (usdt / entry_count) < 5.0:
                     slack_bot.post_message(f"You need more USDT balance. End program.")
                     break
+                amount = get_amount(usdt, price, entry_count)
 
                 set_leverage(ticker, leverage)
 
