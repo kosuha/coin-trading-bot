@@ -143,7 +143,7 @@ def main():
                 long = rsi > rsi_down and last_rsi < rsi_down   # over sold
                 short = rsi < rsi_up and last_rsi > rsi_up      # over bought
                 position_amount = get_position_amount(ticker)
-                price = current_price()
+                price = current_price(ticker)
                 usdt = usdt_balance()
                 amount = get_amount(usdt, price, entry_count)
                 if amount < 5.0:
