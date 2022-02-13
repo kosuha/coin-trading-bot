@@ -31,20 +31,19 @@ def get_ohlcv(ticker, timeframe, limit):
 
 # 지표 계산
 def get_rsi(df):
-    delta = df['close'].diff(1)
-    delta = delta.dropna()
-
-    u = delta.copy()
-    d = delta.copy()
+    period = 14
+    
+    delta = df['close'].diff()
+    u, d = delta.copy(), delta.copy()
     u[u < 0] = 0
     d[d > 0] = 0
     
-    au = u.ewm(com = 14-1, min_periods = 14).mean()
-    ad = d.abs().ewm(com = 14-1, min_periods = 14).mean()
-
-    rsi = pd.Series(100 - (100 / (1 + au / ad)))
+    au = u.ewm(com = period - 1, min_periods = period).mean()
+    ad = d.abs().ewm(com = period - 1, min_periods = period).mean()
+    rs = au / ad
+    rsi = pd.Series(100 - (100 / (1 + rs)))
     df['rsi'] = rsi
-
+    
     return df.iloc[-3]['rsi'], df.iloc[-2]['rsi']
 
 # 레버리지 설정 (주의: 바이낸스가 열려있으면 안됌!)
@@ -108,27 +107,28 @@ def close_all_positions(ticker, position_amount, start_balance):
         response = binance.create_market_buy_order(symbol=ticker, amount=abs(position_amount))
     
     total = total_balance()
-    slack_bot.post_message(f"Close positions. Return: {round((total / start_balance * 100) - 100, 2)} %")
+    slack_bot.post_message(f"Close positions\nReturn: {round((total / start_balance * 100) - 100, 2)} %")
 
 def entry_long(ticker, amount, leverage):
     response = binance.create_market_buy_order(symbol=ticker, amount=amount * leverage)
-    slack_bot.post_message(f"Entry Long x{leverage} {round(amount, 2)} USDT")
+    slack_bot.post_message(f"Entry Long x{leverage}\n{round(amount, 2)} USDT")
 
 def entry_short(ticker, amount, leverage):
     response = binance.create_market_sell_order(symbol=ticker, amount=amount * leverage)
-    slack_bot.post_message(f"Entry Short x{leverage} {round(amount, 2)} USDT")
+    slack_bot.post_message(f"Entry Short x{leverage}\n{round(amount, 2)} USDT")
 
 def main():
     ticker = "ETH/USDT"
     start_balance = 100
     reset_bool = False
     total = total_balance()
-    rsi_up = 75
-    rsi_down = 25
+    rsi_up = 76
+    rsi_down = 24
     entry_count = 10
     leverage = 2
 
-    slack_bot.post_message(f"Start Binance Futures Trading. Balance: {round(total, 2)} USDT")
+    slack_bot.post_message(f"Start Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
+    print("Start!")
 
     while True:
         try:
@@ -138,25 +138,25 @@ def main():
             
             # 15분 간격으로 지표 업데이트 후 매매
             if (reset_bool == False) and (now.minute in looptimeframe):
-                df = get_ohlcv(ticker, "15m", 20)
+                df = get_ohlcv(ticker, "15m", 100)
                 last_rsi, rsi = get_rsi(df)
-                long = rsi > rsi_down and last_rsi < rsi_down   # over sold
-                short = rsi < rsi_up and last_rsi > rsi_up      # over bought
+                long = rsi >= rsi_down and last_rsi < rsi_down   # over sold
+                short = rsi <= rsi_up and last_rsi > rsi_up      # over bought
                 position_amount = get_position_amount(ticker)
                 price = current_price(ticker)
                 usdt = usdt_balance()
                 if (usdt / entry_count) < 5.0:
-                    slack_bot.post_message(f"You need more USDT balance. End program.")
+                    slack_bot.post_message(f"You need more USDT balance.\nEnd program.")
                     break
                 amount = get_amount(usdt, price, entry_count)
 
                 set_leverage(ticker, leverage)
-
+                
                 if long:
                     if position_amount < 0:
                         close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 10
-                    elif entry_count > 0:
+                    if entry_count > 0:
                         entry_long(ticker, amount, leverage)
                         entry_count -= 1
 
@@ -164,7 +164,7 @@ def main():
                     if position_amount > 0:
                         close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 10
-                    elif entry_count > 0:
+                    if entry_count > 0:
                         entry_short(ticker, amount, leverage)
                         entry_count -= 1
 
