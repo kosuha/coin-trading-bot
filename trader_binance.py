@@ -136,9 +136,9 @@ def main():
             looptimeframe = [0, 15, 30, 45]
             looptimeframe_addone = [1, 16, 31, 46]
             
-            # 15분 간격으로 지표 업데이트 후 매매
+            # 3분 간격으로 지표 업데이트 후 매매
             if (reset_bool == False) and (now.minute in looptimeframe):
-                df = get_ohlcv(ticker, "15m", 100)
+                df = get_ohlcv(ticker, "3m", 100)
                 last_rsi, rsi = get_rsi(df)
                 long = rsi >= rsi_down and last_rsi < rsi_down   # over sold
                 short = rsi <= rsi_up and last_rsi > rsi_up      # over bought
