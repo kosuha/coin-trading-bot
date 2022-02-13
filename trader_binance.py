@@ -133,11 +133,9 @@ def main():
     while True:
         try:
             now = datetime.datetime.now()
-            looptimeframe = [0, 15, 30, 45]
-            looptimeframe_addone = [1, 16, 31, 46]
             
             # 3분 간격으로 지표 업데이트 후 매매
-            if (reset_bool == False) and (now.minute in looptimeframe):
+            if (reset_bool == False) and (now.minute == 0 or now.minute % 3 == 0):
                 df = get_ohlcv(ticker, "3m", 100)
                 last_rsi, rsi = get_rsi(df)
                 long = rsi >= rsi_down and last_rsi < rsi_down   # over sold
@@ -170,7 +168,7 @@ def main():
 
                 reset_bool = True
 
-            if now.minute in looptimeframe_addone:
+            if (reset_bool == True) and (now.minute != 0 and now.minute % 3 != 0):
                 reset_bool = False
         
         except Exception as e:
