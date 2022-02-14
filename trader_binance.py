@@ -111,16 +111,13 @@ def close_all_positions(ticker, position_amount, start_balance):
 
 def entry_long(ticker, amount, leverage):
     response = binance.create_market_buy_order(symbol=ticker, amount=amount * leverage)
-    slack_bot.post_message(f"Entry Long x{leverage}\n{round(amount, 2)} USDT")
 
 def entry_short(ticker, amount, leverage):
     response = binance.create_market_sell_order(symbol=ticker, amount=amount * leverage)
-    slack_bot.post_message(f"Entry Short x{leverage}\n{round(amount, 2)} USDT")
 
 def main():
     ticker = "ETH/USDT"
     start_balance = 100
-    reset_bool = False
     total = total_balance()
     rsi_up = 76
     rsi_down = 24
@@ -135,7 +132,7 @@ def main():
             now = datetime.datetime.now()
             
             # 3분 간격으로 지표 업데이트 후 매매
-            if (reset_bool == False) and (now.minute == 0 or now.minute % 3 == 0):
+            if (now.second > 5) and (now.minute == 0 or now.minute % 3 == 0):
                 df = get_ohlcv(ticker, "3m", 100)
                 last_rsi, rsi = get_rsi(df)
                 long = rsi >= rsi_down and last_rsi < rsi_down   # over sold
@@ -157,6 +154,7 @@ def main():
                     if entry_count > 0:
                         entry_long(ticker, amount, leverage)
                         entry_count -= 1
+                        slack_bot.post_message(f"Entry Long x{leverage}\n{round(amount * price, 2)} USDT\nRSI {last_rsi} -> {rsi}\nEntry Count {10 - entry_count} / 10")
 
                 if short:
                     if position_amount > 0:
@@ -165,11 +163,9 @@ def main():
                     if entry_count > 0:
                         entry_short(ticker, amount, leverage)
                         entry_count -= 1
+                        slack_bot.post_message(f"Entry Short x{leverage}\n{round(amount * price, 2)} USDT\nRSI {last_rsi} -> {rsi}Entry Count {10 - entry_count} / 10")
 
-                reset_bool = True
-
-            if (reset_bool == True) and (now.minute != 0 and now.minute % 3 != 0):
-                reset_bool = False
+                time.sleep(60)
         
         except Exception as e:
             slack_bot.post_message(f"binance! {e}")
