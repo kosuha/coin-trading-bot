@@ -107,7 +107,7 @@ def close_all_positions(ticker, position_amount, start_balance):
         response = binance.create_market_buy_order(symbol=ticker, amount=abs(position_amount))
     
     total = total_balance()
-    slack_bot.post_message(f"Close positions\nReturn: {round((total / start_balance * 100) - 100, 2)} %")
+    slack_bot.post_message(f"#\nClose positions\nReturn: {round((total / start_balance * 100) - 100, 2)} %\nTotal: {round(total, 2)} USDT")
 
 def entry_long(ticker, amount, leverage):
     response = binance.create_market_buy_order(symbol=ticker, amount=amount * leverage)
@@ -121,10 +121,10 @@ def main():
     total = total_balance()
     rsi_up = 76
     rsi_down = 24
-    entry_count = 6
+    entry_count = 5
     leverage = 2
 
-    slack_bot.post_message(f"Start Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
+    slack_bot.post_message(f"#\nStart Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
     print("Start!")
 
     while True:
@@ -140,8 +140,8 @@ def main():
                 position_amount = get_position_amount(ticker)
                 price = current_price(ticker)
                 usdt = usdt_balance()
-                if (usdt / entry_count) < 5.0:
-                    slack_bot.post_message(f"You need more USDT balance.\nEnd program.")
+                if (entry_count > 0) and ((usdt / entry_count) < 5.0):
+                    slack_bot.post_message(f"#\nYou need more USDT balance.\nEnd program.")
                     break
                 amount = get_amount(usdt, price, entry_count)
 
@@ -154,7 +154,7 @@ def main():
                     if entry_count > 0:
                         entry_long(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"Entry Long x{leverage}\n {round(usdt / entry_count, 2)} USDT\n Entry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"#\nEntry Long x{leverage}\nEntry Count {10 - entry_count} / 10")
 
                 if short:
                     if position_amount > 0:
@@ -163,12 +163,12 @@ def main():
                     if entry_count > 0:
                         entry_short(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"Entry Short x{leverage}\n {round(usdt / entry_count, 2)} USDT\n Entry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"#\nEntry Short x{leverage}\nEntry Count {10 - entry_count} / 10")
 
                 time.sleep(60)
         
         except Exception as e:
-            slack_bot.post_message(f"binance! {e}")
+            slack_bot.post_message(f"#\nError\n{e}")
             print(e)
 
         time.sleep(1)
