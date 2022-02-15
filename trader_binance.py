@@ -121,7 +121,7 @@ def main():
     total = total_balance()
     rsi_up = 76
     rsi_down = 24
-    entry_count = 10
+    entry_count = 6
     leverage = 2
 
     slack_bot.post_message(f"Start Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
@@ -154,7 +154,7 @@ def main():
                     if entry_count > 0:
                         entry_long(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"Entry Long x{leverage}\n{round(amount * price, 2)} USDT\nRSI {last_rsi} -> {rsi}\nEntry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"Entry Long x{leverage}\n {round(usdt / entry_count, 2)} USDT\n Entry Count {10 - entry_count} / 10")
 
                 if short:
                     if position_amount > 0:
@@ -163,7 +163,7 @@ def main():
                     if entry_count > 0:
                         entry_short(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"Entry Short x{leverage}\n{round(amount * price, 2)} USDT\nRSI {last_rsi} -> {rsi}Entry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"Entry Short x{leverage}\n {round(usdt / entry_count, 2)} USDT\n Entry Count {10 - entry_count} / 10")
 
                 time.sleep(60)
         
