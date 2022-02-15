@@ -154,7 +154,7 @@ def main():
                     if entry_count > 0:
                         entry_long(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"#\nEntry Long x{leverage}\nEntry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"#\nEntry Long x{leverage} ({10 - entry_count} / 10)")
 
                 if short:
                     if position_amount > 0:
@@ -163,7 +163,7 @@ def main():
                     if entry_count > 0:
                         entry_short(ticker, amount, leverage)
                         entry_count -= 1
-                        slack_bot.post_message(f"#\nEntry Short x{leverage}\nEntry Count {10 - entry_count} / 10")
+                        slack_bot.post_message(f"#\nEntry Short x{leverage} ({10 - entry_count} / 10)")
 
                 time.sleep(60)
         
