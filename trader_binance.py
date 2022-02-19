@@ -145,14 +145,13 @@ def main():
                     break
                 amount = get_amount(usdt, price, entry_max - entry_count)
                 
-                leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
-                set_leverage(ticker, leverage)
-                
                 if long:
                     if position_amount < 0:
                         close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 0
                     if entry_count < entry_max:
+                        leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
+                        set_leverage(ticker, leverage)
                         entry_long(ticker, amount, leverage)
                         entry_count += 1
                         slack_bot.post_message(f"#\nEntry Long x{leverage} ({entry_count} / {entry_max})")
@@ -162,6 +161,8 @@ def main():
                         close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 0
                     if entry_count < entry_max:
+                        leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
+                        set_leverage(ticker, leverage)
                         entry_short(ticker, amount, leverage)
                         entry_count += 1
                         slack_bot.post_message(f"#\nEntry Short x{leverage} ({entry_count} / {entry_max})")
