@@ -32,5 +32,4 @@ def order_info(coin):
     headers = {"Authorization": authorize_token}
 
     res = requests.get(server_url + "/v1/orders/chance", params=query, headers=headers)
-
     return res.json()

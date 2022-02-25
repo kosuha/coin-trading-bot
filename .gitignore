@@ -6,3 +6,5 @@ output.log
 logs
 models
 crypto_token.txt
+backtest/
+gui/
