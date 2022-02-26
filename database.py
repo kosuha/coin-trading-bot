@@ -14,7 +14,7 @@ def insert_data(balance, price):
 	now_datetime = f"{now.year}-{now.month}-{now.day} {now.hour}:{now.minute}"
 
 	cursor = db.cursor()
-	query = "INSERT INTO trade_history.history (date, balance, price) VALUES (%s, %s, %s)"
+	query = "INSERT INTO history (date, balance, price) VALUES (%s, %s, %s)"
 	data = (now_datetime, balance, price)
 	cursor.execute(query, data)
 	db.commit()
