@@ -6,6 +6,7 @@ import time
 import math
 import numpy as np
 import slack_bot
+import database
 
 # 바이낸스 선물거래 객체 생성
 binance = ccxt.binance(config={
@@ -107,6 +108,8 @@ def close_all_positions(ticker, position_amount, start_balance):
         response = binance.create_market_buy_order(symbol=ticker, amount=abs(position_amount))
     
     total = total_balance()
+    price = current_price(ticker)
+    database.insert_data(round(total, 2), round(price, 2))
     slack_bot.post_message(f"#\nClose positions\nReturn: {round((total / start_balance * 100) - 100, 2)} %\nTotal: {round(total, 2)} USDT")
 
 def entry_long(ticker, amount, leverage):
