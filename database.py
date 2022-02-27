@@ -11,7 +11,7 @@ db = pymysql.Connect(
 
 def insert_data(balance, price):
 	now = datetime.datetime.now()
-	now_datetime = f"{now.year}-{now.month}-{now.day} {now.hour}:{now.minute}"
+	now_datetime = f"{now.year}-{format(now.month, '02')}-{format(now.day, '02')} {format(now.hour, '02')}:{format(now.minute, '02')}"
 
 	cursor = db.cursor()
 	query = "INSERT INTO history (date, balance, price) VALUES(%s, %s, %s)"
