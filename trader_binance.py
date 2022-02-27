@@ -124,7 +124,7 @@ def main():
     total = total_balance()
     rsi_up = 76
     rsi_down = 24
-    entry_count = 6
+    entry_count = 2
     entry_max = 10
 
     slack_bot.post_message(f"#\nStart Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
