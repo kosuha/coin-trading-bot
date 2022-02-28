@@ -109,8 +109,8 @@ def close_all_positions(ticker, position_amount, start_balance):
     
     total = total_balance()
     price = current_price(ticker)
-    database.insert_data(round(total, 2), round(price, 2))
     slack_bot.post_message(f"#\nClose positions\nReturn: {round((total / start_balance * 100) - 100, 2)} %\nTotal: {round(total, 2)} USDT")
+    database.insert_data(round(total, 2), round(price, 2))
 
 def entry_long(ticker, amount, leverage):
     response = binance.create_market_buy_order(symbol=ticker, amount=amount * leverage)
@@ -124,7 +124,7 @@ def main():
     total = total_balance()
     rsi_up = 76
     rsi_down = 24
-    entry_count = 2
+    entry_count = 1
     entry_max = 10
 
     slack_bot.post_message(f"#\nStart Binance Futures Trading.\nStart balance: {round(total, 2)} USDT\nTicker: {ticker}")
@@ -150,8 +150,8 @@ def main():
                 
                 if long:
                     if position_amount < 0:
-                        close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 0
+                        close_all_positions(ticker, position_amount, start_balance)
                     if entry_count < entry_max:
                         leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
                         set_leverage(ticker, leverage)
@@ -161,8 +161,8 @@ def main():
 
                 if short:
                     if position_amount > 0:
-                        close_all_positions(ticker, position_amount, start_balance)
                         entry_count = 0
+                        close_all_positions(ticker, position_amount, start_balance)
                     if entry_count < entry_max:
                         leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
                         set_leverage(ticker, leverage)
