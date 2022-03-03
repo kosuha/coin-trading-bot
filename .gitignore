@@ -8,3 +8,4 @@ models
 crypto_token.txt
 backtest/
 gui/
+.DS_Store

@@ -62,13 +62,6 @@ def current_price(ticker):
 
     return current
 
-# 자산 조회
-def usdt_balance():
-    balance = binance.fetch_balance()
-    total = balance['total']['USDT']
-
-    return total
-
 # 수량 계산
 def get_amount(usdt_balance, current_price, count):
     usdt_trade = usdt_balance
