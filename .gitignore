@@ -2,6 +2,7 @@
 config/
 excels/
 __pycache__/
+__pycache__
 output.log
 logs
 models
@@ -9,3 +10,4 @@ crypto_token.txt
 backtest/
 gui/
 .DS_Store
+*.pyc
