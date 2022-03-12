@@ -146,7 +146,7 @@ def main():
                         entry_count = 0
                         close_all_positions(ticker, position_amount, start_balance)
                     if entry_count < entry_max:
-                        leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
+                        leverage = 1 if entry_count == 0 else (entry_count // 2) + 1
                         set_leverage(ticker, leverage)
                         entry_long(ticker, amount, leverage)
                         entry_count += 1
