@@ -139,7 +139,6 @@ def main():
                 if (entry_count < entry_max) and ((usdt / (entry_max - entry_count)) < 5.0):
                     slack_bot.post_message(f"#\nYou need more USDT balance.\nEnd program.")
                     break
-                amount = get_amount(usdt, price, entry_max - entry_count)
                 
                 if long:
                     if position_amount < 0:
@@ -148,6 +147,7 @@ def main():
                     if entry_count < entry_max:
                         leverage = 1 if entry_count == 0 else (entry_count // 2) + 1
                         set_leverage(ticker, leverage)
+                        amount = get_amount(usdt, price, entry_max - entry_count)
                         entry_long(ticker, amount, leverage)
                         entry_count += 1
                         slack_bot.post_message(f"#\nEntry Long x{leverage} ({entry_count} / {entry_max})")
@@ -157,8 +157,9 @@ def main():
                         entry_count = 0
                         close_all_positions(ticker, position_amount, start_balance)
                     if entry_count < entry_max:
-                        leverage = 1 if entry_count == 0 else (entry_count // 3) + 1
+                        leverage = 1 if entry_count == 0 else (entry_count // 2) + 1
                         set_leverage(ticker, leverage)
+                        amount = get_amount(usdt, price, entry_max - entry_count)
                         entry_short(ticker, amount, leverage)
                         entry_count += 1
                         slack_bot.post_message(f"#\nEntry Short x{leverage} ({entry_count} / {entry_max})")
